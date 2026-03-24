@@ -96,11 +96,39 @@ function ChampionPicker({ value, onChange, champions, placeholder, accentColor =
   );
 }
 
-function ResultSection({ title, color, children }) {
+function ResultSection({ title, icon, color, children }) {
   return (
-    <div style={{ background:"rgba(0,0,0,0.35)", border:`1px solid ${color}20`, borderRadius:12, padding:20 }}>
-      <div style={{ fontSize:14, fontWeight:800, color, marginBottom:14, display:"flex", alignItems:"center", gap:8 }}>{title}</div>
-      {children}
+    <div style={{
+      position:"relative", overflow:"hidden",
+      background:`linear-gradient(135deg, ${color}08 0%, rgba(0,0,0,0.35) 60%)`,
+      border:`1px solid ${color}20`, borderRadius:16, padding:24,
+    }}>
+      <div style={{ position:"absolute", top:0, left:0, right:0, height:2, background:`linear-gradient(90deg, transparent, ${color}60, transparent)` }} />
+      <div style={{ position:"absolute", top:-30, right:-30, width:90, height:90, borderRadius:"50%", background:`radial-gradient(circle, ${color}08 0%, transparent 70%)`, pointerEvents:"none" }} />
+      <div style={{ fontSize:14, fontWeight:800, color, marginBottom:14, display:"flex", alignItems:"center", gap:8, position:"relative" }}>
+        {icon && <span style={{ fontSize:16 }}>{icon}</span>}{title}
+      </div>
+      <div style={{ position:"relative" }}>{children}</div>
+    </div>
+  );
+}
+
+function ItemBadge({ name, itemData, index, color }) {
+  const id = itemData[name];
+  return (
+    <div className="item-badge" style={{
+      background:`${color}0a`, border:`1px solid ${color}25`, borderRadius:8,
+      padding:"7px 12px", fontSize:12, fontWeight:600, color,
+      display:"flex", alignItems:"center", gap:8, cursor:"default",
+      transition:"all 0.2s",
+    }}
+      onMouseEnter={(e) => { e.currentTarget.style.transform="translateY(-2px)"; e.currentTarget.style.boxShadow=`0 4px 16px ${color}20`; }}
+      onMouseLeave={(e) => { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow="none"; }}
+    >
+      <span style={{ color:`${color}55`, fontSize:10, fontWeight:800 }}>{index+1}</span>
+      {id && <img src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/item/${id}.png`} alt={name}
+        style={{ width:22, height:22, borderRadius:4 }} onError={(e) => { e.target.style.display="none"; }} />}
+      {name}
     </div>
   );
 }
@@ -108,9 +136,9 @@ function ResultSection({ title, color, children }) {
 function BuildRow({ label, value }) {
   if (!value) return null;
   return (
-    <div style={{ display:"flex", gap:10, marginBottom:8, fontSize:13, alignItems:"baseline" }}>
-      <span style={{ color:"#5b5a56", fontWeight:700, fontSize:11, textTransform:"uppercase", letterSpacing:"1px", minWidth:80, flexShrink:0 }}>{label}</span>
-      <span style={{ color:"#f0e6d2", lineHeight:1.5 }}>{value}</span>
+    <div style={{ display:"flex", gap:10, marginBottom:8, fontSize:13, alignItems:"center" }}>
+      <span style={{ background:"rgba(255,255,255,0.04)", padding:"3px 10px", borderRadius:5, color:"#8a8580", fontWeight:700, fontSize:11, textTransform:"uppercase", letterSpacing:"1px", minWidth:80, flexShrink:0, textAlign:"center" }}>{label}</span>
+      <span style={{ color:"#e8e0d0", lineHeight:1.5 }}>{value}</span>
     </div>
   );
 }
@@ -118,9 +146,9 @@ function BuildRow({ label, value }) {
 function PhaseBlock({ label, text, color }) {
   if (!text) return null;
   return (
-    <div style={{ marginBottom:12, paddingLeft:12, borderLeft:`2px solid ${color}44` }}>
+    <div style={{ marginBottom:12, padding:"12px 14px", borderLeft:`2px solid ${color}55`, borderRadius:"0 8px 8px 0", background:`linear-gradient(90deg, ${color}0a, transparent)` }}>
       <div style={{ fontSize:11, fontWeight:700, color, marginBottom:4, textTransform:"uppercase", letterSpacing:"1px" }}>{label}</div>
-      <p style={{ margin:0, color:"#a09b8c", fontSize:12, lineHeight:1.6 }}>{text}</p>
+      <p style={{ margin:0, color:"#c8c0b0", fontSize:12, lineHeight:1.6 }}>{text}</p>
     </div>
   );
 }
@@ -136,6 +164,20 @@ function CoachTool() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [loadingMsg, setLoadingMsg] = useState(0);
+  const [itemData, setItemData] = useState({});
+
+  useEffect(() => {
+    fetch("https://ddragon.leagueoflegends.com/cdn/15.6.1/data/en_US/item.json")
+      .then(r => r.json())
+      .then(data => {
+        const lookup = {};
+        for (const [id, item] of Object.entries(data.data)) {
+          lookup[item.name] = id;
+        }
+        setItemData(lookup);
+      })
+      .catch(() => {});
+  }, []);
 
   const msgs = ["Analizando composición enemiga...","Evaluando sinergia de equipo...","Optimizando build contextual...","Generando game plan completo..."];
   useEffect(() => {
@@ -276,64 +318,99 @@ Respondé SOLO con un JSON válido (sin markdown, sin backticks) con esta estruc
       </div>
 
       {/* Generate */}
-      <button onClick={generate} disabled={!canGenerate || loading} style={{
+      <button onClick={generate} disabled={!canGenerate || loading} className={loading ? "btn-loading-glow" : ""} style={{
         width:"100%", padding:"15px 24px",
-        background: canGenerate && !loading ? "linear-gradient(135deg, #c89b3c, #a67c28)" : "rgba(255,255,255,0.04)",
-        color: canGenerate && !loading ? "#0a0a1a" : "#3a3a3a",
-        border:"none", borderRadius:10, fontSize:15, fontWeight:800, cursor: canGenerate && !loading ? "pointer":"not-allowed",
-        textTransform:"uppercase", letterSpacing:"2px", transition:"all 0.3s", marginBottom:24,
-        boxShadow: canGenerate && !loading ? "0 4px 24px rgba(200,155,60,0.25)":"none",
+        background: loading
+          ? "linear-gradient(90deg, #785a28, #c89b3c, #f0d878, #c89b3c, #785a28)"
+          : canGenerate ? "linear-gradient(135deg, #c89b3c, #a67c28)" : "rgba(255,255,255,0.04)",
+        backgroundSize: loading ? "200% 100%" : "100% 100%",
+        animation: loading ? "shimmer 2s linear infinite" : "none",
+        color: canGenerate || loading ? "#0a0a1a" : "#3a3a3a",
+        border:"none", borderRadius:10, fontSize:15, fontWeight:800,
+        cursor: canGenerate && !loading ? "pointer":"not-allowed",
+        textTransform:"uppercase", letterSpacing:"2px", transition:"background 0.3s, box-shadow 0.3s", marginBottom:24,
+        boxShadow: loading
+          ? undefined
+          : canGenerate ? "0 4px 24px rgba(200,155,60,0.25)" : "none",
         fontFamily:"'Outfit',sans-serif",
       }}>
-        {loading ? msgs[loadingMsg] : "⚡ Generar Game Plan"}
+        {loading ? `🧠 ${msgs[loadingMsg]}` : "⚡ Generar Game Plan"}
       </button>
 
       {error && <div style={{ background:"rgba(232,64,87,0.08)", border:"1px solid rgba(232,64,87,0.25)", borderRadius:10, padding:16, color:"#e84057", fontSize:14, marginBottom:20 }}>{error}</div>}
 
       {result && (
         <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-          <ResultSection title="📊 Análisis" color="#c89b3c">
-            <p style={{ margin:"0 0 8px", color:"#a09b8c", lineHeight:1.6 }}>{result.matchup_summary}</p>
-            <div style={{ background:"rgba(200,155,60,0.08)", borderRadius:6, padding:"8px 12px", fontSize:13, color:"#c89b3c", fontWeight:600 }}>{result.damage_analysis}</div>
+          {/* Champion Portraits Header */}
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:20, padding:"20px 0 8px" }}>
+            <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:6 }}>
+              <div style={{ width:64, height:64, borderRadius:12, border:"2px solid #1dba5a", boxShadow:"0 0 20px rgba(29,186,90,0.3)", overflow:"hidden" }}>
+                <img src={getChampIcon(myChamp)} alt={myChamp} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+              </div>
+              <span style={{ fontSize:12, fontWeight:700, color:"#1dba5a" }}>{myChamp}</span>
+            </div>
+            <div style={{ fontSize:22, fontWeight:900, color:"#5b5a56", letterSpacing:2 }}>VS</div>
+            <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:6 }}>
+              <div style={{ width:64, height:64, borderRadius:12, border:"2px solid #e84057", boxShadow:"0 0 20px rgba(232,64,87,0.3)", overflow:"hidden" }}>
+                <img src={getChampIcon(laneOpponent)} alt={laneOpponent} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+              </div>
+              <span style={{ fontSize:12, fontWeight:700, color:"#e84057" }}>{laneOpponent}</span>
+            </div>
+          </div>
+
+          <ResultSection icon="📊" title="Análisis" color="#c89b3c">
+            <p style={{ margin:"0 0 10px", color:"#c8c0b0", lineHeight:1.6 }}>{result.matchup_summary}</p>
+            <div style={{ background:"rgba(200,155,60,0.08)", borderRadius:8, padding:"10px 14px", fontSize:13, color:"#c89b3c", fontWeight:600 }}>{result.damage_analysis}</div>
           </ResultSection>
           {result.team_synergy && (
-            <ResultSection title="🤝 Sinergia de Equipo" color="#1dba5a">
-              <p style={{ margin:0, color:"#a09b8c", lineHeight:1.6, fontSize:13 }}>{result.team_synergy}</p>
+            <ResultSection icon="🤝" title="Sinergia de Equipo" color="#1dba5a">
+              <p style={{ margin:0, color:"#c8c0b0", lineHeight:1.6, fontSize:13 }}>{result.team_synergy}</p>
             </ResultSection>
           )}
-          <ResultSection title={`⚔️ Build de Línea vs ${laneOpponent}`} color="#e84057">
+          <ResultSection icon="⚔️" title={`Build de Línea vs ${laneOpponent}`} color="#e84057">
             <BuildRow label="Inicio" value={result.laning_build?.starter} />
             <BuildRow label="1er Recall" value={result.laning_build?.first_back} />
             <BuildRow label="Core" value={result.laning_build?.core_laning} />
             <BuildRow label="Botas" value={result.laning_build?.boots} />
-            <p style={{ margin:"10px 0 0", color:"#5b5a56", fontSize:12, lineHeight:1.5, fontStyle:"italic" }}>{result.laning_build?.explanation}</p>
+            {result.laning_build?.explanation && (
+              <div style={{ marginTop:12, background:"rgba(232,64,87,0.06)", borderRadius:8, padding:"10px 14px", fontSize:12, lineHeight:1.5, color:"#c8c0b0", fontStyle:"italic" }}>{result.laning_build.explanation}</div>
+            )}
           </ResultSection>
-          <ResultSection title="🏆 Build Completa" color="#0acbe6">
-            <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:12 }}>
+          <ResultSection icon="🏆" title="Build Completa" color="#0acbe6">
+            <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:14 }}>
               {result.teamfight_build?.full_build?.map((item, i) => (
-                <div key={i} style={{ background:"rgba(10,203,230,0.06)", border:"1px solid rgba(10,203,230,0.18)", borderRadius:6, padding:"6px 12px", fontSize:12, fontWeight:600, color:"#0acbe6", display:"flex", alignItems:"center", gap:6 }}>
-                  <span style={{ color:"rgba(10,203,230,0.4)", fontSize:11 }}>{i+1}</span>{item}
-                </div>
+                <ItemBadge key={i} name={item} itemData={itemData} index={i} color="#0acbe6" />
               ))}
             </div>
-            <p style={{ margin:"0 0 8px", color:"#a09b8c", fontSize:12, lineHeight:1.5 }}>{result.teamfight_build?.build_order}</p>
-            <p style={{ margin:0, color:"#4a4a4a", fontSize:12 }}><strong style={{ color:"#7a7a7a" }}>Situacional:</strong> {result.teamfight_build?.situational}</p>
+            <div style={{ background:"rgba(10,203,230,0.06)", borderRadius:8, padding:"10px 14px", marginBottom:8 }}>
+              <p style={{ margin:0, color:"#c8c0b0", fontSize:12, lineHeight:1.5 }}>{result.teamfight_build?.build_order}</p>
+            </div>
+            <div style={{ background:"rgba(10,203,230,0.04)", borderRadius:8, padding:"10px 14px" }}>
+              <p style={{ margin:0, color:"#8a8a8a", fontSize:12 }}><strong style={{ color:"#0acbe6" }}>Situacional:</strong> {result.teamfight_build?.situational}</p>
+            </div>
           </ResultSection>
-          <ResultSection title="✨ Runas" color="#c466f7">
+          <ResultSection icon="✨" title="Runas" color="#c466f7">
             <BuildRow label="Primarias" value={result.runes?.primary} />
             <BuildRow label="Secundarias" value={result.runes?.secondary} />
-            <p style={{ margin:"8px 0 0", color:"#5b5a56", fontSize:12, lineHeight:1.5, fontStyle:"italic" }}>{result.runes?.explanation}</p>
+            {result.runes?.explanation && (
+              <div style={{ marginTop:12, background:"rgba(196,102,247,0.06)", borderRadius:8, padding:"10px 14px", fontSize:12, lineHeight:1.5, color:"#c8c0b0", fontStyle:"italic" }}>{result.runes.explanation}</div>
+            )}
           </ResultSection>
-          <ResultSection title="🗺️ Game Plan" color="#1dba5a">
+          <ResultSection icon="🗺️" title="Game Plan" color="#1dba5a">
             <PhaseBlock label="Early (1-6)" text={result.game_plan?.early} color="#e84057" />
             <PhaseBlock label="Mid Game" text={result.game_plan?.mid} color="#c89b3c" />
             <PhaseBlock label="Late Game" text={result.game_plan?.late} color="#0acbe6" />
             {result.game_plan?.tips?.length > 0 && (
-              <div style={{ marginTop:12 }}>
-                <div style={{ fontSize:11, color:"#1dba5a", fontWeight:700, marginBottom:8, textTransform:"uppercase", letterSpacing:"1px" }}>Pro Tips</div>
+              <div style={{ marginTop:14, background:"rgba(29,186,90,0.06)", border:"1px solid rgba(29,186,90,0.15)", borderRadius:10, padding:16 }}>
+                <div style={{ fontSize:11, color:"#1dba5a", fontWeight:700, marginBottom:10, textTransform:"uppercase", letterSpacing:"1px" }}>Pro Tips</div>
                 {result.game_plan.tips.map((tip, i) => (
-                  <div key={i} style={{ display:"flex", gap:8, marginBottom:6, fontSize:12, color:"#a09b8c", lineHeight:1.5 }}>
-                    <span style={{ color:"#1dba5a", fontWeight:700, flexShrink:0 }}>→</span>{tip}
+                  <div key={i}>
+                    <div style={{ display:"flex", gap:8, padding:"8px 0", fontSize:12, color:"#c8c0b0", lineHeight:1.5 }}>
+                      <span style={{ color:"#1dba5a", fontWeight:700, flexShrink:0 }}>→</span>{tip}
+                    </div>
+                    {i < result.game_plan.tips.length - 1 && (
+                      <div style={{ height:1, background:"rgba(29,186,90,0.1)" }} />
+                    )}
                   </div>
                 ))}
               </div>
@@ -418,6 +495,9 @@ export default function App() {
     ::-webkit-scrollbar-thumb { background:rgba(200,155,60,0.3); border-radius:3px; }
     @keyframes fadeUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
     @keyframes shimmer { 0% { background-position:-200% center; } 100% { background-position:200% center; } }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.7; } }
+    @keyframes loadingGlow { 0%,100% { box-shadow:0 4px 24px rgba(200,155,60,0.25); } 50% { box-shadow:0 4px 40px rgba(200,155,60,0.5); } }
+    .btn-loading-glow { animation: loadingGlow 1.5s ease-in-out infinite, shimmer 2s linear infinite; }
     .fade-up { animation:fadeUp 0.8s ease forwards; opacity:0; }
     .d1 { animation-delay:0.1s; } .d2 { animation-delay:0.2s; } .d3 { animation-delay:0.3s; } .d4 { animation-delay:0.4s; }
     .nav-link { color:#5b5a56; text-decoration:none; font-size:13px; font-weight:600; letter-spacing:1px; text-transform:uppercase; transition:color 0.3s; cursor:pointer; background:none; border:none; font-family:'Outfit',sans-serif; }
