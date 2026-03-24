@@ -386,6 +386,7 @@ function CoachTool() {
   const [itemData, setItemData] = useState({});
   const [runeData, setRuneData] = useState({});
   const [fromCache, setFromCache] = useState(false);
+  const [buildType, setBuildType] = useState("auto");
 
   useEffect(() => {
     Promise.all([
@@ -446,7 +447,7 @@ function CoachTool() {
   const otherLanes = LANES.filter(l => l !== myLane);
 
   function getCacheKey() {
-    const parts = [myChamp, myLane, laneOpponent, ...allies.filter(Boolean).sort(), ...enemies.filter(Boolean).sort()];
+    const parts = [myChamp, myLane, buildType, laneOpponent, ...allies.filter(Boolean).sort(), ...enemies.filter(Boolean).sort()];
     return "rc_cache_" + parts.join("|");
   }
 
@@ -472,7 +473,7 @@ function CoachTool() {
     const allyList = allies.filter(Boolean);
     const prompt = `Sos un coach challenger de League of Legends. Analizá esta partida y dame un game plan completo EN ESPAÑOL. Considerá TANTO la composición enemiga COMO la de mi equipo.
 
-MI CAMPEÓN: ${myChamp} (${myLane})
+MI CAMPEÓN: ${myChamp} (${myLane})${buildType === "ad" ? "\nTIPO DE BUILD FORZADO: AD (Attack Damage). Toda la build debe ser AD, no recomiendes items AP." : buildType === "ap" ? "\nTIPO DE BUILD FORZADO: AP (Ability Power). Toda la build debe ser AP, no recomiendes items AD." : buildType === "hybrid" ? "\nTIPO DE BUILD FORZADO: HÍBRIDO. La build debe mezclar items AD y AP para maximizar ambos tipos de daño." : ""}
 MIS ALIADOS: ${allyList.length > 0 ? allyList.join(", ") : "No especificados"}
 OPONENTE DE LÍNEA: ${laneOpponent}
 OTROS ENEMIGOS: ${enemies.filter(Boolean).join(", ") || "No especificados"}
@@ -570,6 +571,27 @@ Respondé SOLO con un JSON válido (sin markdown, sin backticks) con esta estruc
               </button>
             ))}
           </div>
+        </div>
+        <div style={{ marginTop:10 }}>
+          <div style={{ display:"flex", gap:3, background:"rgba(0,0,0,0.35)", borderRadius:8, padding:4 }}>
+            {[
+              { value:"auto", label:"🤖 Auto" },
+              { value:"ad", label:"⚔️ AD" },
+              { value:"ap", label:"🔮 AP" },
+              { value:"hybrid", label:"⚡ Híbrido" },
+            ].map(bt => (
+              <button key={bt.value} onClick={() => setBuildType(bt.value)} style={{
+                flex:1, background: buildType===bt.value ? "rgba(200,155,60,0.25)":"transparent",
+                border: buildType===bt.value ? "1px solid rgba(200,155,60,0.4)":"1px solid transparent",
+                color: buildType===bt.value ? "#d4a843":"#6a6a6a", borderRadius:6, padding:"8px 10px",
+                cursor:"pointer", fontSize:12, fontWeight:700, transition:"all 0.2s",
+                fontFamily:"'Outfit',sans-serif",
+              }}>{bt.label}</button>
+            ))}
+          </div>
+          {buildType !== "auto" && (
+            <div style={{ fontSize:11, color:"#5b5a56", marginTop:4, marginLeft:4 }}>Forzar tipo de build</div>
+          )}
         </div>
       </div>
 
