@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { supabase } from "./supabaseClient";
 
 /* ─── Champion Data ─── */
 const CHAMPIONS = [
@@ -373,7 +374,7 @@ function WardSpotsCard({ text }) {
 }
 
 /* ─── Coach Tool ─── */
-function CoachTool() {
+function CoachTool({ user }) {
   const [myChamp, setMyChamp] = useState(null);
   const [myLane, setMyLane] = useState("MID");
   const [laneOpponent, setLaneOpponent] = useState(null);
@@ -546,6 +547,22 @@ Respondé SOLO con un JSON válido (sin markdown, sin backticks) con esta estruc
       const parsed = JSON.parse(clean);
       setResult(parsed);
       try { localStorage.setItem(cacheKey, JSON.stringify({ data: parsed, ts: Date.now() })); } catch {}
+      // Save generation to Supabase (non-blocking)
+      if (user?.id) {
+        supabase.from("generations").insert({
+          user_id: user.id,
+          champion: myChamp,
+          lane: myLane,
+          opponent: laneOpponent,
+          allies: allies.filter(Boolean),
+          enemies: enemies.filter(Boolean),
+          build_type: buildType,
+          result: parsed,
+          tokens_used: data.usage?.output_tokens || null,
+        }).then(({ error: dbErr }) => {
+          if (dbErr) console.warn("Error saving generation:", dbErr.message);
+        });
+      }
     } catch(err) {
       console.error(err);
       setError(err.message || "Error al generar el análisis. Intentá de nuevo.");
@@ -799,14 +816,80 @@ export default function App() {
   const [authForm, setAuthForm] = useState({ email:"", password:"", username:"", region:"LAS" });
   const [authError, setAuthError] = useState(null);
   const [authLoading, setAuthLoading] = useState(false);
+  const [sessionLoading, setSessionLoading] = useState(true);
 
   const REGIONS = ["LAS","LAN","NA","EUW","EUNE","KR","JP","BR","OCE","TR","RU"];
 
-  const handleAuth = (e) => {
+  // Listen for auth state changes (login, logout, token refresh)
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        fetchProfile(session.user);
+      } else {
+        setSessionLoading(false);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        fetchProfile(session.user);
+      } else {
+        setUser(null);
+        setSessionLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const fetchProfile = async (authUser) => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("username, region, tier, generations_today")
+        .eq("id", authUser.id)
+        .single();
+
+      if (data) {
+        setUser({
+          id: authUser.id,
+          email: authUser.email,
+          username: data.username,
+          region: data.region,
+          tier: data.tier,
+          generations_today: data.generations_today,
+        });
+      } else {
+        // Fallback if profile not created yet by trigger
+        setUser({
+          id: authUser.id,
+          email: authUser.email,
+          username: authUser.user_metadata?.username || authUser.email?.split("@")[0] || "Invocador",
+          region: authUser.user_metadata?.region || "LAS",
+          tier: "free",
+          generations_today: 0,
+        });
+      }
+    } catch (err) {
+      console.error("Error fetching profile:", err);
+      setUser({
+        id: authUser.id,
+        email: authUser.email,
+        username: authUser.email?.split("@")[0] || "Invocador",
+        region: "LAS",
+        tier: "free",
+        generations_today: 0,
+      });
+    }
+    setSessionLoading(false);
+  };
+
+  const handleAuth = async (e) => {
     e.preventDefault();
     setAuthLoading(true);
     setAuthError(null);
-    setTimeout(() => {
+
+    try {
       if (authMode === "register") {
         if (!authForm.email || !authForm.password || !authForm.username) {
           setAuthError("Completá todos los campos");
@@ -818,23 +901,76 @@ export default function App() {
           setAuthLoading(false);
           return;
         }
-        setUser({ email: authForm.email, username: authForm.username, region: authForm.region });
-        setPage("home");
+
+        const { data, error } = await supabase.auth.signUp({
+          email: authForm.email,
+          password: authForm.password,
+          options: {
+            data: {
+              username: authForm.username,
+              region: authForm.region,
+            },
+          },
+        });
+
+        if (error) {
+          setAuthError(translateAuthError(error.message));
+          setAuthLoading(false);
+          return;
+        }
+
+        // If email confirmation is disabled, user is logged in immediately
+        if (data.user && !data.user.identities?.length === 0) {
+          setAuthError("Este email ya está registrado. Intentá iniciar sesión.");
+        } else {
+          setPage("home");
+        }
       } else {
         if (!authForm.email || !authForm.password) {
           setAuthError("Completá email y contraseña");
           setAuthLoading(false);
           return;
         }
-        setUser({ email: authForm.email, username: authForm.email.split("@")[0], region: "LAS" });
+
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: authForm.email,
+          password: authForm.password,
+        });
+
+        if (error) {
+          setAuthError(translateAuthError(error.message));
+          setAuthLoading(false);
+          return;
+        }
+
         setPage("home");
       }
-      setAuthLoading(false);
+
       setAuthForm({ email:"", password:"", username:"", region:"LAS" });
-    }, 800);
+    } catch (err) {
+      setAuthError("Error de conexión. Intentá de nuevo.");
+    }
+    setAuthLoading(false);
   };
 
-  const logout = () => {
+  const translateAuthError = (msg) => {
+    const map = {
+      "Invalid login credentials": "Email o contraseña incorrectos",
+      "User already registered": "Este email ya está registrado",
+      "Email not confirmed": "Confirmá tu email antes de iniciar sesión",
+      "Signup requires a valid password": "La contraseña no es válida",
+      "Password should be at least 6 characters": "La contraseña debe tener al menos 6 caracteres",
+      "Email rate limit exceeded": "Demasiados intentos. Esperá unos minutos.",
+      "For security purposes, you can only request this after": "Demasiados intentos. Esperá unos segundos.",
+    };
+    for (const [key, val] of Object.entries(map)) {
+      if (msg.includes(key)) return val;
+    }
+    return msg;
+  };
+
+  const logout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
     setPage("home");
     window.scrollTo({ top:0, behavior:"smooth" });
@@ -882,6 +1018,20 @@ export default function App() {
     .auth-select:focus { border-color:rgba(200,155,60,0.5); }
     .auth-select option { background:#12121f; color:#f0e6d2; }
   `;
+
+  if (sessionLoading) {
+    return (
+      <>
+        <style>{css}</style>
+        <div style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", background:"#080810" }}>
+          <div style={{ textAlign:"center" }}>
+            <div style={{ width:48, height:48, background:"linear-gradient(135deg,#c89b3c,#785a28)", borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, margin:"0 auto 16px", animation:"pulse 1.5s infinite" }}>⚡</div>
+            <div style={{ color:"#5b5a56", fontSize:14, fontFamily:"'Outfit',sans-serif" }}>Cargando...</div>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -1121,7 +1271,7 @@ export default function App() {
               <h2 style={{ fontSize:42, fontWeight:900, color:"#f0e6d2", letterSpacing:"-1px", marginBottom:8 }}>AI Coach</h2>
               <p style={{ color:"#6a6a6a", fontSize:16 }}>Seleccioná los campeones y generá tu game plan</p>
             </div>
-            <CoachTool />
+            <CoachTool user={user} />
           </div>
 
           {/* Features */}
