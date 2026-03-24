@@ -169,12 +169,47 @@ function RuneBadge({ name, runeData, color }) {
 
 function RunesList({ text, runeData, color }) {
   if (!text || !runeData.exact) return <span style={{ color:"#c8c0b0", fontSize:14 }}>{text}</span>;
+  
+  // Split text by common separators to find individual rune names
   const allNames = [...Object.keys(runeData.exact)];
-  const found = allNames.filter(rn => text.toLowerCase().includes(rn.toLowerCase()));
-  if (found.length === 0) return <span style={{ color:"#c8c0b0", fontSize:14 }}>{text}</span>;
+  
+  // Known rune trees for prominent display
+  const treesES = ["Precisión","Dominación","Brujería","Valor","Inspiración"];
+  const treesEN = ["Precision","Domination","Sorcery","Resolve","Inspiration"];
+  const allTrees = [...treesES, ...treesEN];
+  
+  // Find tree name in text
+  const foundTree = allTrees.find(t => text.toLowerCase().includes(t.toLowerCase()));
+  const treeIcon = foundTree ? findRuneIcon(foundTree, runeData) : null;
+  
+  // Find individual runes (not trees)
+  const found = allNames.filter(rn => {
+    if (allTrees.some(t => t.toLowerCase() === rn.toLowerCase())) return false;
+    return text.toLowerCase().includes(rn.toLowerCase()) && rn.length > 2;
+  });
+  
+  // Deduplicate by normalized name
+  const seen = new Set();
+  const deduped = found.filter(rn => {
+    const n = normalize(rn);
+    if (seen.has(n)) return false;
+    seen.add(n);
+    return true;
+  });
+
+  if (deduped.length === 0 && !foundTree) return <span style={{ color:"#c8c0b0", fontSize:14 }}>{text}</span>;
+  
   return (
-    <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
-      {found.map((rn, i) => <RuneBadge key={i} name={rn} runeData={runeData} color={color} />)}
+    <div>
+      {foundTree && (
+        <div style={{ display:"inline-flex", alignItems:"center", gap:6, marginBottom:8, padding:"4px 10px", background:`${color}15`, borderRadius:6, border:`1px solid ${color}30` }}>
+          {treeIcon && <img src={treeIcon} alt={foundTree} style={{ width:20, height:20 }} onError={(e) => { e.target.style.display="none"; }} />}
+          <span style={{ fontSize:13, fontWeight:700, color }}>{foundTree}</span>
+        </div>
+      )}
+      <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginTop: foundTree ? 6 : 0 }}>
+        {deduped.map((rn, i) => <RuneBadge key={i} name={rn} runeData={runeData} color={color} />)}
+      </div>
     </div>
   );
 }
@@ -199,12 +234,32 @@ function ItemBadge({ name, itemData, index, color }) {
   );
 }
 
-function BuildRow({ label, value }) {
+function BuildRow({ label, value, itemData }) {
   if (!value) return null;
+  const extractedItems = itemData?.exact ? Object.keys(itemData.exact).filter(name => {
+    const norm = name.toLowerCase();
+    const valNorm = value.toLowerCase();
+    return valNorm.includes(norm) && norm.length > 3;
+  }).sort((a, b) => b.length - a.length).slice(0, 4) : [];
+
   return (
-    <div style={{ display:"flex", gap:12, marginBottom:10, fontSize:15, alignItems:"center" }}>
-      <span style={{ background:"rgba(255,255,255,0.05)", padding:"4px 12px", borderRadius:5, color:"#9a9590", fontWeight:700, fontSize:12, textTransform:"uppercase", letterSpacing:"1px", minWidth:86, flexShrink:0, textAlign:"center" }}>{label}</span>
-      <span style={{ color:"#e8e0d0", lineHeight:1.5 }}>{value}</span>
+    <div style={{ display:"flex", gap:12, marginBottom:10, fontSize:15, alignItems:"flex-start" }}>
+      <span style={{ background:"rgba(255,255,255,0.05)", padding:"4px 12px", borderRadius:5, color:"#9a9590", fontWeight:700, fontSize:12, textTransform:"uppercase", letterSpacing:"1px", minWidth:86, flexShrink:0, textAlign:"center", marginTop:2 }}>{label}</span>
+      <div>
+        {extractedItems.length > 0 && (
+          <div style={{ display:"flex", flexWrap:"wrap", gap:4, marginBottom:4 }}>
+            {extractedItems.map((item, i) => {
+              const id = findItemId(item, itemData);
+              return id ? (
+                <img key={i} src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/item/${id}.png`} alt={item} title={item}
+                  style={{ width:24, height:24, borderRadius:4, border:"1px solid rgba(255,255,255,0.1)" }}
+                  onError={(e) => { e.target.style.display="none"; }} />
+              ) : null;
+            })}
+          </div>
+        )}
+        <span style={{ color:"#e8e0d0", lineHeight:1.5 }}>{value}</span>
+      </div>
     </div>
   );
 }
@@ -733,10 +788,10 @@ Respondé SOLO con un JSON válido (sin markdown, sin backticks) con esta estruc
                 ))}
               </div>
             )}
-            <BuildRow label="Inicio" value={result.laning_build?.starter} />
-            <BuildRow label="1er Recall" value={result.laning_build?.first_back} />
-            <BuildRow label="Core" value={result.laning_build?.core_laning} />
-            <BuildRow label="Botas" value={result.laning_build?.boots} />
+            <BuildRow label="Inicio" value={result.laning_build?.starter} itemData={itemData} />
+            <BuildRow label="1er Recall" value={result.laning_build?.first_back} itemData={itemData} />
+            <BuildRow label="Core" value={result.laning_build?.core_laning} itemData={itemData} />
+            <BuildRow label="Botas" value={result.laning_build?.boots} itemData={itemData} />
             {result.laning_build?.explanation && (
               <div style={{ marginTop:12, background:"rgba(255,77,99,0.06)", borderRadius:8, padding:"10px 14px", fontSize:14, lineHeight:1.5, color:"#c8c0b0", fontStyle:"italic" }}>{result.laning_build.explanation}</div>
             )}
