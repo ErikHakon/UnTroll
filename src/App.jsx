@@ -48,17 +48,17 @@ function ChampionPicker({ value, onChange, champions, placeholder, accentColor =
       <div onClick={() => setOpen(!open)} style={{
         background: value ? "rgba(0,0,0,0.6)" : "rgba(0,0,0,0.35)",
         border: `1px solid ${value ? accentColor : "rgba(255,255,255,0.06)"}`,
-        borderRadius: 8, padding:"8px 12px", cursor:"pointer",
-        display:"flex", alignItems:"center", gap:8, minHeight:42, transition:"all 0.2s",
+        borderRadius: 8, padding:"12px 16px", cursor:"pointer",
+        display:"flex", alignItems:"center", gap:10, minHeight:52, transition:"all 0.2s",
       }}>
         {value ? (<>
-          <img src={getChampIcon(value)} alt={value} style={{ width:26, height:26, borderRadius:4 }}
+          <img src={getChampIcon(value)} alt={value} style={{ width:32, height:32, borderRadius:4 }}
             onError={(e) => { e.target.style.display = "none"; }} />
-          <span style={{ color:"#f0e6d2", fontSize:13, fontWeight:600 }}>{value}</span>
+          <span style={{ color:"#f0e6d2", fontSize:15, fontWeight:600 }}>{value}</span>
           <span onClick={(e) => { e.stopPropagation(); onChange(null); }}
-            style={{ marginLeft:"auto", color:"#555", cursor:"pointer", fontSize:14 }}>✕</span>
+            style={{ marginLeft:"auto", color:"#555", cursor:"pointer", fontSize:16 }}>✕</span>
         </>) : (
-          <span style={{ color:"#4a4a4a", fontSize:13 }}>{placeholder}</span>
+          <span style={{ color:"#666", fontSize:15 }}>{placeholder}</span>
         )}
       </div>
       {open && (
@@ -72,19 +72,19 @@ function ChampionPicker({ value, onChange, champions, placeholder, accentColor =
             placeholder="Buscar..." style={{
               background:"rgba(0,0,0,0.6)", border:"none",
               borderBottom:"1px solid rgba(200,155,60,0.15)",
-              color:"#f0e6d2", padding:"10px 12px", fontSize:13, outline:"none",
+              color:"#f0e6d2", padding:"12px 14px", fontSize:15, outline:"none",
             }} />
           <div style={{ overflowY:"auto", flex:1 }}>
             {filtered.map(c => (
               <div key={c} onClick={() => { onChange(c); setOpen(false); setSearch(""); }}
                 style={{
-                  padding:"7px 12px", display:"flex", alignItems:"center", gap:8,
-                  cursor:"pointer", color:"#8a8a8a", fontSize:13, transition:"background 0.12s",
+                  padding:"10px 14px", display:"flex", alignItems:"center", gap:10,
+                  cursor:"pointer", color:"#c8c0b0", fontSize:15, transition:"background 0.12s",
                 }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(200,155,60,0.12)"; e.currentTarget.style.color = "#f0e6d2"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#8a8a8a"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#c8c0b0"; }}
               >
-                <img src={getChampIcon(c)} alt={c} style={{ width:22, height:22, borderRadius:3 }}
+                <img src={getChampIcon(c)} alt={c} style={{ width:28, height:28, borderRadius:3 }}
                   onError={(e) => { e.target.style.display = "none"; }} />
                 {c}
               </div>
@@ -100,13 +100,13 @@ function ResultSection({ title, icon, color, children }) {
   return (
     <div style={{
       position:"relative", overflow:"hidden",
-      background:`linear-gradient(135deg, ${color}08 0%, rgba(0,0,0,0.35) 60%)`,
-      border:`1px solid ${color}20`, borderRadius:16, padding:24,
+      background:`linear-gradient(135deg, ${color}12 0%, rgba(0,0,0,0.35) 60%)`,
+      border:`1px solid ${color}35`, borderRadius:16, padding:28,
     }}>
       <div style={{ position:"absolute", top:0, left:0, right:0, height:2, background:`linear-gradient(90deg, transparent, ${color}60, transparent)` }} />
-      <div style={{ position:"absolute", top:-30, right:-30, width:90, height:90, borderRadius:"50%", background:`radial-gradient(circle, ${color}08 0%, transparent 70%)`, pointerEvents:"none" }} />
-      <div style={{ fontSize:14, fontWeight:800, color, marginBottom:14, display:"flex", alignItems:"center", gap:8, position:"relative" }}>
-        {icon && <span style={{ fontSize:16 }}>{icon}</span>}{title}
+      <div style={{ position:"absolute", top:-30, right:-30, width:90, height:90, borderRadius:"50%", background:`radial-gradient(circle, ${color}12 0%, transparent 70%)`, pointerEvents:"none" }} />
+      <div style={{ fontSize:17, fontWeight:800, color, marginBottom:14, display:"flex", alignItems:"center", gap:8, position:"relative" }}>
+        {icon && <span style={{ fontSize:18 }}>{icon}</span>}{title}
       </div>
       <div style={{ position:"relative" }}>{children}</div>
     </div>
@@ -118,7 +118,7 @@ function ItemBadge({ name, itemData, index, color }) {
   return (
     <div className="item-badge" style={{
       background:`${color}0a`, border:`1px solid ${color}25`, borderRadius:8,
-      padding:"7px 12px", fontSize:12, fontWeight:600, color,
+      padding:"8px 14px", fontSize:14, fontWeight:600, color,
       display:"flex", alignItems:"center", gap:8, cursor:"default",
       transition:"all 0.2s",
     }}
@@ -127,7 +127,7 @@ function ItemBadge({ name, itemData, index, color }) {
     >
       <span style={{ color:`${color}55`, fontSize:10, fontWeight:800 }}>{index+1}</span>
       {id && <img src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/item/${id}.png`} alt={name}
-        style={{ width:22, height:22, borderRadius:4 }} onError={(e) => { e.target.style.display="none"; }} />}
+        style={{ width:32, height:32, borderRadius:4 }} onError={(e) => { e.target.style.display="none"; }} />}
       {name}
     </div>
   );
@@ -136,8 +136,8 @@ function ItemBadge({ name, itemData, index, color }) {
 function BuildRow({ label, value }) {
   if (!value) return null;
   return (
-    <div style={{ display:"flex", gap:10, marginBottom:8, fontSize:13, alignItems:"center" }}>
-      <span style={{ background:"rgba(255,255,255,0.04)", padding:"3px 10px", borderRadius:5, color:"#8a8580", fontWeight:700, fontSize:11, textTransform:"uppercase", letterSpacing:"1px", minWidth:80, flexShrink:0, textAlign:"center" }}>{label}</span>
+    <div style={{ display:"flex", gap:12, marginBottom:10, fontSize:15, alignItems:"center" }}>
+      <span style={{ background:"rgba(255,255,255,0.05)", padding:"4px 12px", borderRadius:5, color:"#9a9590", fontWeight:700, fontSize:12, textTransform:"uppercase", letterSpacing:"1px", minWidth:86, flexShrink:0, textAlign:"center" }}>{label}</span>
       <span style={{ color:"#e8e0d0", lineHeight:1.5 }}>{value}</span>
     </div>
   );
@@ -147,8 +147,8 @@ function PhaseBlock({ label, text, color }) {
   if (!text) return null;
   return (
     <div style={{ marginBottom:12, padding:"12px 14px", borderLeft:`2px solid ${color}55`, borderRadius:"0 8px 8px 0", background:`linear-gradient(90deg, ${color}0a, transparent)` }}>
-      <div style={{ fontSize:11, fontWeight:700, color, marginBottom:4, textTransform:"uppercase", letterSpacing:"1px" }}>{label}</div>
-      <p style={{ margin:0, color:"#c8c0b0", fontSize:12, lineHeight:1.6 }}>{text}</p>
+      <div style={{ fontSize:13, fontWeight:700, color, marginBottom:4, textTransform:"uppercase", letterSpacing:"1px" }}>{label}</div>
+      <p style={{ margin:0, color:"#c8c0b0", fontSize:14, lineHeight:1.6 }}>{text}</p>
     </div>
   );
 }
@@ -279,10 +279,10 @@ Respondé SOLO con un JSON válido (sin markdown, sin backticks) con esta estruc
   }
 
   return (
-    <div style={{ maxWidth:820, margin:"0 auto" }}>
+    <div style={{ maxWidth:900, margin:"0 auto" }}>
       {/* My Champ */}
-      <div style={{ background:"rgba(200,155,60,0.05)", border:"1px solid rgba(200,155,60,0.12)", borderRadius:12, padding:20, marginBottom:14 }}>
-        <div style={{ fontSize:11, textTransform:"uppercase", letterSpacing:"2px", color:"#c89b3c", marginBottom:12, fontWeight:700 }}>🎮 Tu campeón</div>
+      <div style={{ background:"rgba(200,155,60,0.05)", border:"1px solid rgba(200,155,60,0.25)", borderRadius:12, padding:20, marginBottom:14 }}>
+        <div style={{ fontSize:13, textTransform:"uppercase", letterSpacing:"2px", color:"#d4a843", marginBottom:12, fontWeight:700 }}>🎮 Tu campeón</div>
         <div style={{ display:"flex", gap:10 }}>
           <div style={{ flex:1 }}>
             <ChampionPicker value={myChamp} onChange={setMyChamp} champions={availableFor(myChamp)} placeholder="Seleccioná tu campeón" />
@@ -292,11 +292,11 @@ Respondé SOLO con un JSON válido (sin markdown, sin backticks) con esta estruc
               <button key={l} onClick={() => setMyLane(l)} style={{
                 background: myLane===l ? "rgba(200,155,60,0.25)":"transparent",
                 border: myLane===l ? "1px solid rgba(200,155,60,0.4)":"1px solid transparent",
-                color: myLane===l ? "#c89b3c":"#4a4a4a", borderRadius:6, padding:"6px 7px",
-                cursor:"pointer", fontSize:10, fontWeight:700, display:"flex", flexDirection:"column",
-                alignItems:"center", gap:1, minWidth:34, transition:"all 0.2s",
+                color: myLane===l ? "#d4a843":"#6a6a6a", borderRadius:6, padding:"8px 10px",
+                cursor:"pointer", fontSize:12, fontWeight:700, display:"flex", flexDirection:"column",
+                alignItems:"center", gap:2, minWidth:42, transition:"all 0.2s",
               }}>
-                <span style={{ fontSize:13 }}>{LANE_ICONS[l]}</span><span>{l}</span>
+                <span style={{ fontSize:16 }}>{LANE_ICONS[l]}</span><span>{l}</span>
               </button>
             ))}
           </div>
@@ -304,16 +304,16 @@ Respondé SOLO con un JSON válido (sin markdown, sin backticks) con esta estruc
       </div>
 
       {/* Allies */}
-      <div style={{ background:"rgba(29,186,90,0.03)", border:"1px solid rgba(29,186,90,0.1)", borderRadius:12, padding:20, marginBottom:14 }}>
-        <div style={{ fontSize:11, textTransform:"uppercase", letterSpacing:"2px", color:"#1dba5a", marginBottom:12, fontWeight:700, display:"flex", justifyContent:"space-between" }}>
+      <div style={{ background:"rgba(29,186,90,0.03)", border:"1px solid rgba(29,186,90,0.25)", borderRadius:12, padding:20, marginBottom:14 }}>
+        <div style={{ fontSize:13, textTransform:"uppercase", letterSpacing:"2px", color:"#2dd66a", marginBottom:12, fontWeight:700, display:"flex", justifyContent:"space-between" }}>
           <span>🤝 Tu equipo</span>
-          <span style={{ fontSize:10, color:"#3a3a3a", fontWeight:400, textTransform:"none", letterSpacing:0 }}>Mejora el análisis</span>
+          <span style={{ fontSize:11, color:"#6a6a6a", fontWeight:400, textTransform:"none", letterSpacing:0 }}>Mejora el análisis</span>
         </div>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
           {allies.map((a, i) => (
             <div key={i}>
-              <div style={{ fontSize:10, color:"#3a3a3a", marginBottom:3, marginLeft:4, display:"flex", alignItems:"center", gap:4 }}>
-                <span style={{ fontSize:11 }}>{LANE_ICONS[otherLanes[i]]}</span>{otherLanes[i]}
+              <div style={{ fontSize:12, color:"#6a6a6a", marginBottom:3, marginLeft:4, display:"flex", alignItems:"center", gap:4 }}>
+                <span style={{ fontSize:13 }}>{LANE_ICONS[otherLanes[i]]}</span>{otherLanes[i]}
               </div>
               <ChampionPicker value={a} onChange={(v) => setAlly(i,v)} champions={availableFor(a)} placeholder="Opcional" accentColor="rgba(29,186,90,0.4)" />
             </div>
@@ -322,19 +322,19 @@ Respondé SOLO con un JSON válido (sin markdown, sin backticks) con esta estruc
       </div>
 
       {/* Enemies */}
-      <div style={{ background:"rgba(232,64,87,0.03)", border:"1px solid rgba(232,64,87,0.1)", borderRadius:12, padding:20, marginBottom:20 }}>
-        <div style={{ fontSize:11, textTransform:"uppercase", letterSpacing:"2px", color:"#e84057", marginBottom:14, fontWeight:700 }}>👁️ Equipo Enemigo</div>
+      <div style={{ background:"rgba(232,64,87,0.03)", border:"1px solid rgba(232,64,87,0.25)", borderRadius:12, padding:20, marginBottom:20 }}>
+        <div style={{ fontSize:13, textTransform:"uppercase", letterSpacing:"2px", color:"#ff4d63", marginBottom:14, fontWeight:700 }}>👁️ Equipo Enemigo</div>
         <div style={{ background:"rgba(232,64,87,0.06)", border:"1px solid rgba(232,64,87,0.15)", borderRadius:8, padding:12, marginBottom:12 }}>
-          <div style={{ fontSize:10, color:"#e84057", textTransform:"uppercase", letterSpacing:"1.5px", marginBottom:8, fontWeight:700, display:"flex", alignItems:"center", gap:6 }}>
-            <span style={{ fontSize:13 }}>{LANE_ICONS[myLane]}</span>Tu oponente de línea ({myLane})
+          <div style={{ fontSize:12, color:"#ff4d63", textTransform:"uppercase", letterSpacing:"1.5px", marginBottom:8, fontWeight:700, display:"flex", alignItems:"center", gap:6 }}>
+            <span style={{ fontSize:14 }}>{LANE_ICONS[myLane]}</span>Tu oponente de línea ({myLane})
           </div>
           <ChampionPicker value={laneOpponent} onChange={setLaneOpponent} champions={availableFor(laneOpponent)} placeholder="¿Contra quién laneás?" accentColor="rgba(232,64,87,0.4)" />
         </div>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
           {enemies.map((e, i) => (
             <div key={i}>
-              <div style={{ fontSize:10, color:"#3a3a3a", marginBottom:3, marginLeft:4, display:"flex", alignItems:"center", gap:4 }}>
-                <span style={{ fontSize:11 }}>{LANE_ICONS[otherLanes[i]]}</span>{otherLanes[i]}
+              <div style={{ fontSize:12, color:"#6a6a6a", marginBottom:3, marginLeft:4, display:"flex", alignItems:"center", gap:4 }}>
+                <span style={{ fontSize:13 }}>{LANE_ICONS[otherLanes[i]]}</span>{otherLanes[i]}
               </div>
               <ChampionPicker value={e} onChange={(v) => setEnemy(i,v)} champions={availableFor(e)} placeholder="Opcional" accentColor="rgba(232,64,87,0.3)" />
             </div>
@@ -344,14 +344,14 @@ Respondé SOLO con un JSON válido (sin markdown, sin backticks) con esta estruc
 
       {/* Generate */}
       <button onClick={generate} disabled={!canGenerate || loading} className={loading ? "btn-loading-glow" : ""} style={{
-        width:"100%", padding:"15px 24px",
+        width:"100%", padding:"18px 28px",
         background: loading
           ? "linear-gradient(90deg, #785a28, #c89b3c, #f0d878, #c89b3c, #785a28)"
           : canGenerate ? "linear-gradient(135deg, #c89b3c, #a67c28)" : "rgba(255,255,255,0.04)",
         backgroundSize: loading ? "200% 100%" : "100% 100%",
         animation: loading ? "shimmer 2s linear infinite" : "none",
-        color: canGenerate || loading ? "#0a0a1a" : "#3a3a3a",
-        border:"none", borderRadius:10, fontSize:15, fontWeight:800,
+        color: canGenerate || loading ? "#0a0a1a" : "#6a6a6a",
+        border:"none", borderRadius:10, fontSize:17, fontWeight:800,
         cursor: canGenerate && !loading ? "pointer":"not-allowed",
         textTransform:"uppercase", letterSpacing:"2px", transition:"background 0.3s, box-shadow 0.3s", marginBottom:24,
         boxShadow: loading
@@ -379,72 +379,72 @@ Respondé SOLO con un JSON válido (sin markdown, sin backticks) con esta estruc
               onMouseLeave={(e) => { e.currentTarget.style.background="rgba(255,255,255,0.04)"; e.currentTarget.style.borderColor="rgba(255,255,255,0.08)"; e.currentTarget.style.color="#8a8580"; }}
             >🔄 Regenerar</button>
             <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:6 }}>
-              <div style={{ width:64, height:64, borderRadius:12, border:"2px solid #1dba5a", boxShadow:"0 0 20px rgba(29,186,90,0.3)", overflow:"hidden" }}>
+              <div style={{ width:80, height:80, borderRadius:14, border:"2px solid #2dd66a", boxShadow:"0 0 24px rgba(45,214,106,0.35)", overflow:"hidden" }}>
                 <img src={getChampIcon(myChamp)} alt={myChamp} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
               </div>
-              <span style={{ fontSize:12, fontWeight:700, color:"#1dba5a" }}>{myChamp}</span>
+              <span style={{ fontSize:14, fontWeight:700, color:"#2dd66a" }}>{myChamp}</span>
             </div>
-            <div style={{ fontSize:22, fontWeight:900, color:"#5b5a56", letterSpacing:2 }}>VS</div>
+            <div style={{ fontSize:24, fontWeight:900, color:"#6a6a6a", letterSpacing:2 }}>VS</div>
             <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:6 }}>
-              <div style={{ width:64, height:64, borderRadius:12, border:"2px solid #e84057", boxShadow:"0 0 20px rgba(232,64,87,0.3)", overflow:"hidden" }}>
+              <div style={{ width:80, height:80, borderRadius:14, border:"2px solid #ff4d63", boxShadow:"0 0 24px rgba(255,77,99,0.35)", overflow:"hidden" }}>
                 <img src={getChampIcon(laneOpponent)} alt={laneOpponent} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
               </div>
-              <span style={{ fontSize:12, fontWeight:700, color:"#e84057" }}>{laneOpponent}</span>
+              <span style={{ fontSize:14, fontWeight:700, color:"#ff4d63" }}>{laneOpponent}</span>
             </div>
           </div>
 
-          <ResultSection icon="📊" title="Análisis" color="#c89b3c">
-            <p style={{ margin:"0 0 10px", color:"#c8c0b0", lineHeight:1.6 }}>{result.matchup_summary}</p>
-            <div style={{ background:"rgba(200,155,60,0.08)", borderRadius:8, padding:"10px 14px", fontSize:13, color:"#c89b3c", fontWeight:600 }}>{result.damage_analysis}</div>
+          <ResultSection icon="📊" title="Análisis" color="#d4a843">
+            <p style={{ margin:"0 0 10px", color:"#c8c0b0", lineHeight:1.6, fontSize:15 }}>{result.matchup_summary}</p>
+            <div style={{ background:"rgba(212,168,67,0.1)", borderRadius:8, padding:"10px 14px", fontSize:14, color:"#d4a843", fontWeight:600 }}>{result.damage_analysis}</div>
           </ResultSection>
           {result.team_synergy && (
-            <ResultSection icon="🤝" title="Sinergia de Equipo" color="#1dba5a">
-              <p style={{ margin:0, color:"#c8c0b0", lineHeight:1.6, fontSize:13 }}>{result.team_synergy}</p>
+            <ResultSection icon="🤝" title="Sinergia de Equipo" color="#2dd66a">
+              <p style={{ margin:0, color:"#c8c0b0", lineHeight:1.6, fontSize:14 }}>{result.team_synergy}</p>
             </ResultSection>
           )}
-          <ResultSection icon="⚔️" title={`Build de Línea vs ${laneOpponent}`} color="#e84057">
+          <ResultSection icon="⚔️" title={`Build de Línea vs ${laneOpponent}`} color="#ff4d63">
             <BuildRow label="Inicio" value={result.laning_build?.starter} />
             <BuildRow label="1er Recall" value={result.laning_build?.first_back} />
             <BuildRow label="Core" value={result.laning_build?.core_laning} />
             <BuildRow label="Botas" value={result.laning_build?.boots} />
             {result.laning_build?.explanation && (
-              <div style={{ marginTop:12, background:"rgba(232,64,87,0.06)", borderRadius:8, padding:"10px 14px", fontSize:12, lineHeight:1.5, color:"#c8c0b0", fontStyle:"italic" }}>{result.laning_build.explanation}</div>
+              <div style={{ marginTop:12, background:"rgba(255,77,99,0.06)", borderRadius:8, padding:"10px 14px", fontSize:14, lineHeight:1.5, color:"#c8c0b0", fontStyle:"italic" }}>{result.laning_build.explanation}</div>
             )}
           </ResultSection>
-          <ResultSection icon="🏆" title="Build Completa" color="#0acbe6">
+          <ResultSection icon="🏆" title="Build Completa" color="#12d9f5">
             <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:14 }}>
               {result.teamfight_build?.full_build?.map((item, i) => (
-                <ItemBadge key={i} name={item} itemData={itemData} index={i} color="#0acbe6" />
+                <ItemBadge key={i} name={item} itemData={itemData} index={i} color="#12d9f5" />
               ))}
             </div>
-            <div style={{ background:"rgba(10,203,230,0.06)", borderRadius:8, padding:"10px 14px", marginBottom:8 }}>
-              <p style={{ margin:0, color:"#c8c0b0", fontSize:12, lineHeight:1.5 }}>{result.teamfight_build?.build_order}</p>
+            <div style={{ background:"rgba(18,217,245,0.06)", borderRadius:8, padding:"10px 14px", marginBottom:8 }}>
+              <p style={{ margin:0, color:"#c8c0b0", fontSize:14, lineHeight:1.5 }}>{result.teamfight_build?.build_order}</p>
             </div>
-            <div style={{ background:"rgba(10,203,230,0.04)", borderRadius:8, padding:"10px 14px" }}>
-              <p style={{ margin:0, color:"#8a8a8a", fontSize:12 }}><strong style={{ color:"#0acbe6" }}>Situacional:</strong> {result.teamfight_build?.situational}</p>
+            <div style={{ background:"rgba(18,217,245,0.04)", borderRadius:8, padding:"10px 14px" }}>
+              <p style={{ margin:0, color:"#c8c0b0", fontSize:14 }}><strong style={{ color:"#12d9f5" }}>Situacional:</strong> {result.teamfight_build?.situational}</p>
             </div>
           </ResultSection>
-          <ResultSection icon="✨" title="Runas" color="#c466f7">
+          <ResultSection icon="✨" title="Runas" color="#d07fff">
             <BuildRow label="Primarias" value={result.runes?.primary} />
             <BuildRow label="Secundarias" value={result.runes?.secondary} />
             {result.runes?.explanation && (
-              <div style={{ marginTop:12, background:"rgba(196,102,247,0.06)", borderRadius:8, padding:"10px 14px", fontSize:12, lineHeight:1.5, color:"#c8c0b0", fontStyle:"italic" }}>{result.runes.explanation}</div>
+              <div style={{ marginTop:12, background:"rgba(208,127,255,0.06)", borderRadius:8, padding:"10px 14px", fontSize:14, lineHeight:1.5, color:"#c8c0b0", fontStyle:"italic" }}>{result.runes.explanation}</div>
             )}
           </ResultSection>
-          <ResultSection icon="🗺️" title="Game Plan" color="#1dba5a">
-            <PhaseBlock label="Early (1-6)" text={result.game_plan?.early} color="#e84057" />
-            <PhaseBlock label="Mid Game" text={result.game_plan?.mid} color="#c89b3c" />
-            <PhaseBlock label="Late Game" text={result.game_plan?.late} color="#0acbe6" />
+          <ResultSection icon="🗺️" title="Game Plan" color="#2dd66a">
+            <PhaseBlock label="Early (1-6)" text={result.game_plan?.early} color="#ff4d63" />
+            <PhaseBlock label="Mid Game" text={result.game_plan?.mid} color="#d4a843" />
+            <PhaseBlock label="Late Game" text={result.game_plan?.late} color="#12d9f5" />
             {result.game_plan?.tips?.length > 0 && (
-              <div style={{ marginTop:14, background:"rgba(29,186,90,0.06)", border:"1px solid rgba(29,186,90,0.15)", borderRadius:10, padding:16 }}>
-                <div style={{ fontSize:11, color:"#1dba5a", fontWeight:700, marginBottom:10, textTransform:"uppercase", letterSpacing:"1px" }}>Pro Tips</div>
+              <div style={{ marginTop:14, background:"rgba(45,214,106,0.08)", border:"1px solid rgba(45,214,106,0.2)", borderRadius:10, padding:16 }}>
+                <div style={{ fontSize:13, color:"#2dd66a", fontWeight:700, marginBottom:10, textTransform:"uppercase", letterSpacing:"1px" }}>Pro Tips</div>
                 {result.game_plan.tips.map((tip, i) => (
                   <div key={i}>
-                    <div style={{ display:"flex", gap:8, padding:"8px 0", fontSize:12, color:"#c8c0b0", lineHeight:1.5 }}>
-                      <span style={{ color:"#1dba5a", fontWeight:700, flexShrink:0 }}>→</span>{tip}
+                    <div style={{ display:"flex", gap:8, padding:"8px 0", fontSize:14, color:"#c8c0b0", lineHeight:1.5 }}>
+                      <span style={{ color:"#2dd66a", fontWeight:700, flexShrink:0 }}>→</span>{tip}
                     </div>
                     {i < result.game_plan.tips.length - 1 && (
-                      <div style={{ height:1, background:"rgba(29,186,90,0.1)" }} />
+                      <div style={{ height:1, background:"rgba(45,214,106,0.12)" }} />
                     )}
                   </div>
                 ))}
@@ -785,9 +785,9 @@ export default function App() {
           {/* Tool - Right after hero */}
           <div ref={toolRef} style={{ padding:"80px 24px 100px", background:"linear-gradient(180deg, rgba(200,155,60,0.03) 0%, transparent 100%)", borderTop:"1px solid rgba(200,155,60,0.08)" }}>
             <div style={{ textAlign:"center", marginBottom:48 }}>
-              <div style={{ fontSize:12, color:"#c89b3c", textTransform:"uppercase", letterSpacing:"3px", fontWeight:700, marginBottom:12 }}>Herramienta</div>
-              <h2 style={{ fontSize:36, fontWeight:900, color:"#f0e6d2", letterSpacing:"-1px", marginBottom:8 }}>AI Coach</h2>
-              <p style={{ color:"#4a4a4a", fontSize:15 }}>Seleccioná los campeones y generá tu game plan</p>
+              <div style={{ fontSize:13, color:"#d4a843", textTransform:"uppercase", letterSpacing:"3px", fontWeight:700, marginBottom:12 }}>Herramienta</div>
+              <h2 style={{ fontSize:42, fontWeight:900, color:"#f0e6d2", letterSpacing:"-1px", marginBottom:8 }}>AI Coach</h2>
+              <p style={{ color:"#6a6a6a", fontSize:16 }}>Seleccioná los campeones y generá tu game plan</p>
             </div>
             <CoachTool />
           </div>
