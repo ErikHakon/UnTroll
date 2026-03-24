@@ -121,17 +121,38 @@ function normalize(str) {
 function findItemId(name, itemData) {
   if (!itemData.exact) return null;
   const trimmed = name.includes(" o ") ? name.split(" o ")[0].trim() : name.trim();
+  // 1. Exact match
   if (itemData.exact[trimmed]) return itemData.exact[trimmed];
+  // 2. Normalized exact
   const norm = normalize(trimmed);
   if (itemData.normalized[norm]) return itemData.normalized[norm];
-  const variants = [norm];
-  if (norm.includes("s")) variants.push(norm.replace(/s(\w)/g, "$1"));
-  const noThe = norm.replace(/^the/, "");
-  if (noThe !== norm) variants.push(noThe);
+  // 3. Substring match (original)
   const normKeys = Object.keys(itemData.normalized);
-  for (const v of variants) {
+  for (const k of normKeys) {
+    if (k.includes(norm) || norm.includes(k)) return itemData.normalized[k];
+  }
+  // 4. Word-based matching: if 2+ significant words match, it's likely the same item
+  const stopWords = new Set(["de","del","la","el","los","las","un","una","y","o","the","of","a","and","s"]);
+  const getWords = (s) => normalize(s).split(/[^a-z0-9]+/).filter(w => w.length > 2 && !stopWords.has(w));
+  const nameWords = getWords(trimmed);
+  if (nameWords.length > 0) {
+    let bestMatch = null;
+    let bestScore = 0;
     for (const k of normKeys) {
-      if (k.includes(v) || v.includes(k)) return itemData.normalized[k];
+      const kWords = getWords(k);
+      const overlap = nameWords.filter(w => kWords.some(kw => kw.includes(w) || w.includes(kw))).length;
+      const score = overlap / Math.max(nameWords.length, 1);
+      if (overlap >= 2 && score > bestScore) { bestScore = score; bestMatch = k; }
+      else if (overlap >= 1 && nameWords.length <= 2 && score > bestScore) { bestScore = score; bestMatch = k; }
+    }
+    if (bestMatch && bestScore >= 0.5) return itemData.normalized[bestMatch];
+  }
+  // 5. Single keyword match for short names (e.g. "Luden", "Rylai", "Banshee")
+  for (const w of nameWords) {
+    if (w.length >= 4) {
+      for (const k of normKeys) {
+        if (k.includes(w)) return itemData.normalized[k];
+      }
     }
   }
   return null;
