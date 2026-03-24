@@ -26,7 +26,7 @@ const LANE_ICONS = { TOP:"⚔️", MID:"🔥", JGL:"🌿", ADC:"🏹", SUP:"🛡
 
 function getChampIcon(name) {
   const f = name.replace(/['\s.]/g,"").replace("&Willump","");
-  return `https://ddragon.leagueoflegends.com/cdn/14.4.1/img/champion/${f}.png`;
+  return `https://ddragon.leagueoflegends.com/cdn/15.6.1/img/champion/${f}.png`;
 }
 
 /* ─── Reusable Components ─── */
@@ -193,17 +193,21 @@ Respondé SOLO con un JSON válido (sin markdown, sin backticks) con esta estruc
   }
 }`;
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
+      const res = await fetch("/api/coach", {
         method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:1000, messages:[{role:"user",content:prompt}] }),
+        body: JSON.stringify({ prompt }),
       });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error?.message || errData.error || `Error del servidor (${res.status})`);
+      }
       const data = await res.json();
       const text = data.content?.map(i => i.text || "").join("\n") || "";
       const clean = text.replace(/```json|```/g,"").trim();
       setResult(JSON.parse(clean));
     } catch(err) {
       console.error(err);
-      setError("Error al generar el análisis. Intentá de nuevo.");
+      setError(err.message || "Error al generar el análisis. Intentá de nuevo.");
     } finally { setLoading(false); }
   }
 
