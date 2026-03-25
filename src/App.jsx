@@ -118,9 +118,54 @@ function normalize(str) {
   return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/['\s]/g, "").trim();
 }
 
+// Alias map: AI-generated names → DDragon names (es_ES/en_US)
+const ITEM_ALIASES = {
+  // AP items
+  "sombra de fuego":"Llamasombría", "shadowflame":"Llamasombría", "sombra fuego":"Llamasombría",
+  "tempestad de luden":"Compañera de Luden", "luden's tempest":"Compañera de Luden", "eco de luden":"Compañera de Luden", "luden":"Compañera de Luden",
+  "velo de la banshee":"Velo del hada de la muerte", "banshee's veil":"Velo del hada de la muerte", "banshee":"Velo del hada de la muerte",
+  "bastón de oblivión":"Orbe de Oblivión", "oblivion orb":"Orbe de Oblivión", "baston de oblivion":"Orbe de Oblivión",
+  "bastón del vacío":"Báculo del Vacío", "void staff":"Báculo del Vacío", "baston del vacio":"Báculo del Vacío",
+  "sombrero mortal de rabadon":"Sombrero mortal de Rabadon", "rabadon's deathcap":"Sombrero mortal de Rabadon", "rabadon":"Sombrero mortal de Rabadon",
+  "cayado de viento eterno":"Cayado de edades", "staff of flowing water":"Cayado de edades",
+  "reloj de arena de zhonya":"Reloj de arena de Zhonya", "zhonya's hourglass":"Reloj de arena de Zhonya", "zhonya":"Reloj de arena de Zhonya",
+  "tormento de liandry":"Tormento de Liandry", "liandry's torment":"Tormento de Liandry", "liandry":"Tormento de Liandry",
+  "perdición del liche":"Perdición del liche", "lich bane":"Perdición del liche",
+  "diente de nashor":"Diente de Nashor", "nashor's tooth":"Diente de Nashor",
+  "cetro de cristal de rylai":"Cetro de cristal de Rylai", "rylai's crystal scepter":"Cetro de cristal de Rylai", "rylai":"Cetro de cristal de Rylai",
+  "morellonomicón":"Morellonomicón", "morellonomicon":"Morellonomicón", "morello":"Morellonomicón",
+  "impulso cósmico":"Impulso cósmico", "cosmic drive":"Impulso cósmico",
+  // AD items
+  "filo infinito":"Filo infinito", "infinity edge":"Filo infinito",
+  "escudo de malmortius":"Fauces de Malmortius", "maw of malmortius":"Fauces de Malmortius", "malmortius":"Fauces de Malmortius",
+  "filo fantasmal de youmuu":"Filo fantasmal de Youmuu", "youmuu's ghostblade":"Filo fantasmal de Youmuu", "youmuu":"Filo fantasmal de Youmuu",
+  "danza de la muerte":"Danza de la muerte", "death's dance":"Danza de la muerte",
+  "sed de sangre":"Sanguinaria", "bloodthirster":"Sanguinaria",
+  "último suspiro":"Recordatorio letal", "last whisper":"Recordatorio letal",
+  // Tank items
+  "corazón de hielo":"Corazón de hielo", "frozen heart":"Corazón de hielo",
+  "armadura de warmog":"Armadura de Warmog", "warmog's armor":"Armadura de Warmog", "warmog":"Armadura de Warmog",
+  "capa de fuego solar":"Égida de fuego solar", "sunfire":"Égida de fuego solar",
+  // Boots
+  "botas de hechicero":"Botas de hechicero", "sorcerer's shoes":"Botas de hechicero",
+  "botas de mercurio":"Botas de Mercurio", "mercury's treads":"Botas de Mercurio",
+  "tabi de acero":"Botas acorazadas", "plated steelcaps":"Botas acorazadas",
+  "botas jonias de la lucidez":"Botas jonias de la lucidez", "ionian boots":"Botas jonias de la lucidez",
+  "botas de velocidad":"Botas de Velocidad", "boots of speed":"Botas de Velocidad",
+  // Starting items
+  "anillo de doran":"Anillo de Doran", "doran's ring":"Anillo de Doran", "doran ring":"Anillo de Doran",
+  "espada de doran":"Espada de Doran", "doran's blade":"Espada de Doran",
+  "escudo de doran":"Escudo de Doran", "doran's shield":"Escudo de Doran",
+  "sello oscuro":"Sello oscuro", "dark seal":"Sello oscuro",
+  "capítulo perdido":"Capítulo Perdido", "lost chapter":"Capítulo Perdido",
+};
+
 function findItemId(name, itemData) {
   if (!itemData.exact) return null;
-  const trimmed = name.includes(" o ") ? name.split(" o ")[0].trim() : name.trim();
+  let trimmed = name.includes(" o ") ? name.split(" o ")[0].trim() : name.trim();
+  // 0. Check alias map first
+  const aliasKey = trimmed.toLowerCase();
+  if (ITEM_ALIASES[aliasKey]) trimmed = ITEM_ALIASES[aliasKey];
   // 1. Exact match
   if (itemData.exact[trimmed]) return itemData.exact[trimmed];
   // 2. Normalized exact
