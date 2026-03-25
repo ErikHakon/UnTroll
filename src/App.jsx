@@ -144,86 +144,89 @@ function normalize(str) {
   return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/['\s]/g, "").trim();
 }
 
-// Direct alias → DDragon item ID map for names the AI commonly generates
-const ITEM_ID_ALIASES = {
+// Alias map: AI-generated names → array of possible DDragon names to try
+const ITEM_NAME_ALIASES = {
   // AP items
-  "sombra de fuego":"4645", "shadowflame":"4645", "llamasombría":"4645", "llamasombria":"4645",
-  "tempestad de luden":"6655", "luden's tempest":"6655", "compañera de luden":"6655", "luden's companion":"6655", "luden":"6655",
-  "velo de la banshee":"3102", "banshee's veil":"3102", "velo del hada de la muerte":"3102", "banshee":"3102",
-  "bastón del vacío":"3135", "baston del vacio":"3135", "void staff":"3135", "báculo del vacío":"3135",
-  "sombrero mortal de rabadon":"3089", "rabadon's deathcap":"3089", "rabadon":"3089", "sombrero de rabadon":"3089",
-  "reloj de arena de zhonya":"3157", "zhonya's hourglass":"3157", "zhonya":"3157",
-  "tormento de liandry":"4633", "liandry's torment":"4633", "liandry's anguish":"4633", "liandry":"4633",
-  "perdición del liche":"3100", "lich bane":"3100",
-  "diente de nashor":"3115", "nashor's tooth":"3115",
-  "cetro de cristal de rylai":"3116", "rylai's crystal scepter":"3116", "rylai":"3116",
-  "morellonomicón":"3165", "morellonomicon":"3165", "morello":"3165",
-  "impulso cósmico":"4629", "cosmic drive":"4629",
-  "bastón de oblivión":"3916", "oblivion orb":"3916", "orbe de oblivión":"3916",
-  "antorcha de fuego negro":"4646", "blackfire torch":"4646",
-  "creagrietas":"4628", "riftmaker":"4628",
-  "sobrecarga tormentosa":"2501", "stormsurge":"2501",
-  "bastón de arcángel":"3003", "archangel's staff":"3003", "baston de arcangel":"3003",
-  "abrazo del serafín":"3040", "seraph's embrace":"3040", "abrazo del serafin":"3040",
-  "cristal de vidrio":"1027", "sapphire crystal":"1027",
-  "máscara abisal":"3060", "abyssal mask":"3060", "túnica abisal":"3060",
-  "velo especial":"4630", "spectre's cowl":"4630",
-  "horizonte de enfoque":"4628", "horizon focus":"4628",
-  "cetro del cristal infernal":"3116", "infernal crystal scepter":"3116",
-  "cetro de cristal dividido":"3116",
-  "brújula de ornn":"7013", "brujula de ornn":"7013",
-  "robaalmas de mejai":"3041", "mejai's soulstealer":"3041", "mejai":"3041",
+  "sombra de fuego":["Shadowflame","Llamasombría"], "shadowflame":["Shadowflame","Llamasombría"], "llamasombría":["Shadowflame","Llamasombría"],
+  "tempestad de luden":["Luden's Companion","Luden's Tempest","Compañera de Luden","Tempestad de Luden"], "luden":["Luden's Companion","Compañera de Luden"],
+  "velo de la banshee":["Banshee's Veil","Velo del hada de la muerte","Velo de la Banshee"], "banshee":["Banshee's Veil","Velo del hada de la muerte"],
+  "bastón del vacío":["Void Staff","Báculo del Vacío","Bastón del Vacío"], "void staff":["Void Staff","Báculo del Vacío"],
+  "sombrero mortal de rabadon":["Rabadon's Deathcap","Sombrero mortal de Rabadon"], "rabadon":["Rabadon's Deathcap","Sombrero mortal de Rabadon"],
+  "reloj de arena de zhonya":["Zhonya's Hourglass","Reloj de arena de Zhonya"], "zhonya":["Zhonya's Hourglass","Reloj de arena de Zhonya"],
+  "tormento de liandry":["Liandry's Torment","Liandry's Anguish","Tormento de Liandry"], "liandry":["Liandry's Torment","Tormento de Liandry"],
+  "perdición del liche":["Lich Bane","Perdición del liche"], "lich bane":["Lich Bane","Perdición del liche"],
+  "diente de nashor":["Nashor's Tooth","Diente de Nashor"], "nashor":["Nashor's Tooth","Diente de Nashor"],
+  "cetro de cristal de rylai":["Rylai's Crystal Scepter","Cetro de cristal de Rylai"], "rylai":["Rylai's Crystal Scepter","Cetro de cristal de Rylai"],
+  "morellonomicón":["Morellonomicon","Morellonomicón"], "morello":["Morellonomicon","Morellonomicón"],
+  "impulso cósmico":["Cosmic Drive","Impulso cósmico"],
+  "bastón de oblivión":["Oblivion Orb","Orbe de Oblivión"], "orbe de oblivión":["Oblivion Orb","Orbe de Oblivión"],
+  "antorcha de fuego negro":["Blackfire Torch","Antorcha de fuego negro"], "blackfire torch":["Blackfire Torch","Antorcha de fuego negro"],
+  "creagrietas":["Riftmaker","Creagrietas"], "riftmaker":["Riftmaker","Creagrietas"],
+  "sobrecarga tormentosa":["Stormsurge","Sobrecarga tormentosa"], "stormsurge":["Stormsurge","Sobrecarga tormentosa"],
+  "bastón de arcángel":["Archangel's Staff","Bastón de arcángel"], "archangel":["Archangel's Staff","Bastón de arcángel"],
+  "abrazo del serafín":["Seraph's Embrace","Abrazo del Serafín"],
+  "máscara abisal":["Abyssal Mask","Máscara abisal"], "túnica abisal":["Abyssal Mask","Máscara abisal"],
+  "robaalmas de mejai":["Mejai's Soulstealer","Robaalmas de Mejai"], "mejai":["Mejai's Soulstealer","Robaalmas de Mejai"],
+  "velo especial":["Banshee's Veil","Velo del hada de la muerte"],
   // AD items
-  "filo infinito":"3031", "infinity edge":"3031",
-  "fauces de malmortius":"3156", "maw of malmortius":"3156", "malmortius":"3156", "escudo de malmortius":"3156",
-  "filo fantasmal de youmuu":"3142", "youmuu's ghostblade":"3142", "youmuu":"3142",
-  "danza de la muerte":"6333", "death's dance":"6333",
-  "sanguinaria":"3072", "bloodthirster":"3072", "sed de sangre":"3072",
-  "recordatorio letal":"3033", "mortal reminder":"3033",
-  "cuchilla del rey arruinado":"3153", "blade of the ruined king":"3153",
-  "el coleccionista":"6676", "the collector":"6676",
-  "navaja de asalto":"6696", "serylda's grudge":"6696", "rencor de serylda":"6696",
-  "destripador negro":"3071", "black cleaver":"3071",
-  "fuerza de la trinidad":"3078", "trinity force":"3078",
-  "hidra titánica":"3748", "titanic hydra":"3748",
-  "hidra voraz":"3074", "ravenous hydra":"3074",
-  "bailarín fantasma":"3046", "phantom dancer":"3046",
-  "huracán de runaan":"3085", "runaan's hurricane":"3085",
-  "lanza de shojin":"3161", "spear of shojin":"3161",
+  "filo infinito":["Infinity Edge","Filo infinito"], "infinity edge":["Infinity Edge","Filo infinito"],
+  "fauces de malmortius":["Maw of Malmortius","Fauces de Malmortius"], "malmortius":["Maw of Malmortius","Fauces de Malmortius"], "escudo de malmortius":["Maw of Malmortius","Fauces de Malmortius"],
+  "filo fantasmal de youmuu":["Youmuu's Ghostblade","Filo fantasmal de Youmuu"], "youmuu":["Youmuu's Ghostblade","Filo fantasmal de Youmuu"],
+  "danza de la muerte":["Death's Dance","Danza de la muerte"], "death's dance":["Death's Dance","Danza de la muerte"],
+  "sanguinaria":["Bloodthirster","Sanguinaria"], "sed de sangre":["Bloodthirster","Sanguinaria"],
+  "recordatorio letal":["Mortal Reminder","Recordatorio letal"], "mortal reminder":["Mortal Reminder","Recordatorio letal"],
+  "cuchilla del rey arruinado":["Blade of The Ruined King","Cuchilla del Rey Arruinado"], "blade of the ruined king":["Blade of The Ruined King"],
+  "el coleccionista":["The Collector","El Coleccionista"], "the collector":["The Collector","El Coleccionista"],
+  "rencor de serylda":["Serylda's Grudge","Rencor de Serylda"],
+  "destripador negro":["Black Cleaver","Destripador negro"], "black cleaver":["Black Cleaver","Destripador negro"],
+  "fuerza de la trinidad":["Trinity Force","Fuerza de la trinidad"], "trinity force":["Trinity Force"],
+  "hidra titánica":["Titanic Hydra","Hidra titánica"], "hidra voraz":["Ravenous Hydra","Hidra voraz"],
+  "bailarín fantasma":["Phantom Dancer","Bailarín fantasma"],
+  "huracán de runaan":["Runaan's Hurricane","Huracán de Runaan"],
+  "lanza de shojin":["Spear of Shojin","Lanza de Shojin"],
   // Tank items
-  "corazón de hielo":"3110", "frozen heart":"3110",
-  "armadura de warmog":"3083", "warmog's armor":"3083", "warmog":"3083",
-  "égida de fuego solar":"3068", "sunfire aegis":"3068", "capa de fuego solar":"3068",
-  "espíritu visionario":"3065", "spirit visage":"3065",
-  "omen de randuin":"3143", "randuin's omen":"3143",
-  "coraza del muerto":"6333", "dead man's plate":"6333",
-  "armadura de espinas":"3075", "thornmail":"3075",
-  "piedra gárgola":"3193", "gargoyle stoneplate":"3193",
+  "corazón de hielo":["Frozen Heart","Corazón de hielo"], "frozen heart":["Frozen Heart","Corazón de hielo"],
+  "armadura de warmog":["Warmog's Armor","Armadura de Warmog"], "warmog":["Warmog's Armor","Armadura de Warmog"],
+  "égida de fuego solar":["Sunfire Aegis","Égida de fuego solar","Sunfire Cape"], "capa de fuego solar":["Sunfire Aegis","Sunfire Cape"],
+  "espíritu visionario":["Spirit Visage","Espíritu visionario"], "spirit visage":["Spirit Visage"],
+  "omen de randuin":["Randuin's Omen","Omen de Randuin"],
+  "armadura de espinas":["Thornmail","Armadura de espinas"], "thornmail":["Thornmail"],
+  "piedra gárgola":["Gargoyle Stoneplate","Piedra gárgola"],
   // Boots
-  "botas de hechicero":"3020", "sorcerer's shoes":"3020",
-  "botas de mercurio":"3111", "mercury's treads":"3111",
-  "botas acorazadas":"3047", "plated steelcaps":"3047", "tabi de acero":"3047",
-  "botas jonias de la lucidez":"3158", "ionian boots of lucidity":"3158",
-  "botas de velocidad":"1001", "boots of speed":"1001", "botas":"1001",
-  "botas de berserker":"3006", "berserker's greaves":"3006",
-  "botas de rapidez":"3009", "boots of swiftness":"3009",
+  "botas de hechicero":["Sorcerer's Shoes","Botas de hechicero"], "sorcerer's shoes":["Sorcerer's Shoes","Botas de hechicero"],
+  "botas de mercurio":["Mercury's Treads","Botas de Mercurio"], "mercury's treads":["Mercury's Treads"],
+  "botas acorazadas":["Plated Steelcaps","Botas acorazadas"], "tabi de acero":["Plated Steelcaps","Botas acorazadas"],
+  "botas jonias de la lucidez":["Ionian Boots of Lucidity","Botas jonias de la lucidez"],
+  "botas de velocidad":["Boots","Botas de Velocidad"], "boots of speed":["Boots"],
+  "botas de berserker":["Berserker's Greaves","Botas de Berserker"],
+  "botas de rapidez":["Boots of Swiftness","Botas de rapidez"],
   // Starting/Component items
-  "anillo de doran":"1056", "doran's ring":"1056",
-  "espada de doran":"1055", "doran's blade":"1055",
-  "escudo de doran":"1054", "doran's shield":"1054",
-  "sello oscuro":"1082", "dark seal":"1082",
-  "capítulo perdido":"3802", "lost chapter":"3802", "capitulo perdido":"3802",
-  "tomo amplificador":"1052", "amplifying tome":"1052",
-  "anillo de poder":"1056", // alias for Doran's Ring
-  "poción de vida":"2003", "health potion":"2003",
+  "anillo de doran":["Doran's Ring","Anillo de Doran"], "doran's ring":["Doran's Ring","Anillo de Doran"],
+  "espada de doran":["Doran's Blade","Espada de Doran"], "doran's blade":["Doran's Blade"],
+  "escudo de doran":["Doran's Shield","Escudo de Doran"], "doran's shield":["Doran's Shield"],
+  "sello oscuro":["Dark Seal","Sello oscuro"], "dark seal":["Dark Seal"],
+  "capítulo perdido":["Lost Chapter","Capítulo Perdido"], "lost chapter":["Lost Chapter","Capítulo Perdido"], "capitulo perdido":["Lost Chapter","Capítulo Perdido"],
+  "tomo amplificador":["Amplifying Tome","Tomo amplificador"],
+  "anillo de poder":["Doran's Ring","Anillo de Doran"],
+  "cristal de vidrio":["Sapphire Crystal","Cristal de Zafiro"],
+  "vara explosiva":["Blasting Wand","Vara explosiva"],
+  "poción de vida":["Health Potion","Poción de vida"],
+  "antorcha vigilante":["Stealth Ward","Control Ward"],
 };
 
 function findItemId(name, itemData) {
   if (!itemData.exact) return null;
   let trimmed = name.includes(" o ") ? name.split(" o ")[0].trim() : name.trim();
-  // 0. Check direct ID alias map first
+  // 0. Check alias map - try each candidate name against fetched data
   const aliasKey = trimmed.toLowerCase();
-  if (ITEM_ID_ALIASES[aliasKey]) return ITEM_ID_ALIASES[aliasKey];
+  const candidates = ITEM_NAME_ALIASES[aliasKey];
+  if (candidates) {
+    for (const candidate of candidates) {
+      if (itemData.exact[candidate]) return itemData.exact[candidate];
+      const normCandidate = normalize(candidate);
+      if (itemData.normalized[normCandidate]) return itemData.normalized[normCandidate];
+    }
+  }
   // 1. Exact match
   if (itemData.exact[trimmed]) return itemData.exact[trimmed];
   // 2. Normalized exact
@@ -363,12 +366,17 @@ function BuildRow({ label, value, itemData }) {
   const foundIds = [];
   const seen = new Set();
   const valLower = value.toLowerCase();
-  for (const [alias, id] of Object.entries(ITEM_ID_ALIASES)) {
-    if (alias.length > 3 && valLower.includes(alias) && !seen.has(id)) {
-      foundIds.push(id); seen.add(id);
-    }
-  }
+  // Check name aliases → resolve to IDs via fetched data
   if (itemData?.exact) {
+    for (const [alias, candidates] of Object.entries(ITEM_NAME_ALIASES)) {
+      if (alias.length > 3 && valLower.includes(alias)) {
+        for (const candidate of candidates) {
+          const id = itemData.exact[candidate] || itemData.normalized[normalize(candidate)];
+          if (id && !seen.has(id)) { foundIds.push(id); seen.add(id); break; }
+        }
+      }
+    }
+    // Also check DDragon names directly
     for (const [name, id] of Object.entries(itemData.exact)) {
       if (name.length > 3 && valLower.includes(name.toLowerCase()) && !seen.has(id)) {
         foundIds.push(id); seen.add(id);
