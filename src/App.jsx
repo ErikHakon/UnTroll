@@ -25,13 +25,24 @@ const CHAMPIONS = [
 const LANES = ["TOP","MID","JGL","ADC","SUP"];
 const LANE_ICONS = { TOP:"⚔️", MID:"🔥", JGL:"🌿", ADC:"🏹", SUP:"🛡️" };
 
+// DDragon dynamic version
+let DDRAGON_VER = "15.6.1"; // fallback
+const versionReady = fetch("https://ddragon.leagueoflegends.com/api/versions.json")
+  .then(r => r.json())
+  .then(v => { if (v?.[0]) DDRAGON_VER = v[0]; })
+  .catch(() => {});
+
+function ddragonUrl(path) {
+  return `https://ddragon.leagueoflegends.com/cdn/${DDRAGON_VER}/${path}`;
+}
+
 // DDragon champion filename overrides
 const CHAMP_FILE_NAMES = {
   "Wukong":"MonkeyKing", "Cho'Gath":"Chogath", "Kha'Zix":"Khazix",
   "Kai'Sa":"Kaisa", "Vel'Koz":"Velkoz", "Kog'Maw":"KogMaw",
   "Rek'Sai":"RekSai", "Bel'Veth":"Belveth", "K'Sante":"KSante",
   "LeBlanc":"Leblanc", "Nunu & Willump":"Nunu",
-  "Renata Glasc":"RenataGlasc", "Jarvan IV":"JarvanIV",
+  "Renata Glasc":"Renata", "Jarvan IV":"JarvanIV",
   "Lee Sin":"LeeSin", "Master Yi":"MasterYi", "Miss Fortune":"MissFortune",
   "Tahm Kench":"TahmKench", "Twisted Fate":"TwistedFate", "Xin Zhao":"XinZhao",
   "Aurelion Sol":"AurelionSol", "Dr. Mundo":"DrMundo",
@@ -40,9 +51,9 @@ const CHAMP_FILE_NAMES = {
 function getChampIcon(name) {
   if (!name) return "";
   const override = CHAMP_FILE_NAMES[name];
-  if (override) return `https://ddragon.leagueoflegends.com/cdn/15.6.1/img/champion/${override}.png`;
+  if (override) return ddragonUrl(`img/champion/${override}.png`);
   const f = name.replace(/['\s.]/g,"").replace("&Willump","");
-  return `https://ddragon.leagueoflegends.com/cdn/15.6.1/img/champion/${f}.png`;
+  return ddragonUrl(`img/champion/${f}.png`);
 }
 
 /* ─── Reusable Components ─── */
@@ -152,9 +163,16 @@ const ITEM_ID_ALIASES = {
   "antorcha de fuego negro":"4646", "blackfire torch":"4646",
   "creagrietas":"4628", "riftmaker":"4628",
   "sobrecarga tormentosa":"2501", "stormsurge":"2501",
-  "bastón de arcángel":"3003", "archangel's staff":"3003",
+  "bastón de arcángel":"3003", "archangel's staff":"3003", "baston de arcangel":"3003",
+  "abrazo del serafín":"3040", "seraph's embrace":"3040", "abrazo del serafin":"3040",
+  "cristal de vidrio":"1027", "sapphire crystal":"1027",
+  "máscara abisal":"3060", "abyssal mask":"3060", "túnica abisal":"3060",
+  "velo especial":"4630", "spectre's cowl":"4630",
+  "horizonte de enfoque":"4628", "horizon focus":"4628",
   "cetro del cristal infernal":"3116", "infernal crystal scepter":"3116",
+  "cetro de cristal dividido":"3116",
   "brújula de ornn":"7013", "brujula de ornn":"7013",
+  "robaalmas de mejai":"3041", "mejai's soulstealer":"3041", "mejai":"3041",
   // AD items
   "filo infinito":"3031", "infinity edge":"3031",
   "fauces de malmortius":"3156", "maw of malmortius":"3156", "malmortius":"3156", "escudo de malmortius":"3156",
@@ -333,7 +351,7 @@ function ItemBadge({ name, itemData, index, color }) {
       onMouseLeave={(e) => { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow="none"; }}
     >
       <span style={{ color:`${color}55`, fontSize:10, fontWeight:800 }}>{index+1}</span>
-      {id && <img src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/item/${id}.png`} alt={name}
+      {id && <img src={`${ddragonUrl(`img/item/${id}.png`)}`} alt={name}
         style={{ width:32, height:32, borderRadius:4 }} onError={(e) => { e.target.style.display="none"; }} />}
       {name}
     </div>
@@ -364,7 +382,7 @@ function BuildRow({ label, value, itemData }) {
         {foundIds.length > 0 && (
           <div style={{ display:"flex", flexWrap:"wrap", gap:4, marginBottom:4 }}>
             {foundIds.slice(0, 4).map((id, i) => (
-              <img key={i} src={`https://ddragon.leagueoflegends.com/cdn/15.6.1/img/item/${id}.png`} alt=""
+              <img key={i} src={`${ddragonUrl(`img/item/${id}.png`)}`} alt=""
                 style={{ width:24, height:24, borderRadius:4, border:"1px solid rgba(255,255,255,0.1)" }}
                 onError={(e) => { e.target.style.display="none"; }} />
             ))}
@@ -557,9 +575,10 @@ function CoachTool({ user }) {
   const [buildType, setBuildType] = useState("auto");
 
   useEffect(() => {
+    versionReady.then(() => {
     Promise.all([
-      fetch("https://ddragon.leagueoflegends.com/cdn/15.6.1/data/en_US/item.json").then(r => r.json()),
-      fetch("https://ddragon.leagueoflegends.com/cdn/15.6.1/data/es_ES/item.json").then(r => r.json()),
+      fetch(ddragonUrl("data/en_US/item.json")).then(r => r.json()),
+      fetch(ddragonUrl("data/es_ES/item.json")).then(r => r.json()),
     ]).then(([enData, esData]) => {
       const exact = {};
       const normalized = {};
@@ -575,8 +594,8 @@ function CoachTool({ user }) {
     }).catch(() => {});
 
     Promise.all([
-      fetch("https://ddragon.leagueoflegends.com/cdn/15.6.1/data/en_US/runesReforged.json").then(r => r.json()),
-      fetch("https://ddragon.leagueoflegends.com/cdn/15.6.1/data/es_ES/runesReforged.json").then(r => r.json()),
+      fetch(ddragonUrl("data/en_US/runesReforged.json")).then(r => r.json()),
+      fetch(ddragonUrl("data/es_ES/runesReforged.json")).then(r => r.json()),
     ]).then(([enRunes, esRunes]) => {
       const exact = {};
       const normalized = {};
@@ -598,6 +617,7 @@ function CoachTool({ user }) {
       addRunes(esRunes);
       setRuneData({ exact, normalized });
     }).catch(() => {});
+    }); // end versionReady.then
   }, []);
 
   const msgs = ["Analizando composición enemiga...","Evaluando sinergia de equipo...","Optimizando build contextual...","Generando game plan completo..."];
