@@ -1,3 +1,5 @@
+import { createClient } from "@supabase/supabase-js";
+
 const SYSTEM_MESSAGE = `Sos un coach challenger de League of Legends experto en Season 2025.
 Tu tarea es analizar la composición de ambos equipos y generar un game plan completo EN ESPAÑOL.
 
@@ -80,14 +82,54 @@ Usá esta estructura exacta:
   "ward_spots": "Dónde wardear según la fase del juego y el matchup"
 }`;
 
+// Global map for IP rate limiting (persisting across warm executions in Vercel)
+const ipCache = new Map();
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
   if (req.method === "OPTIONS") {
     return res.status(204).end();
   }
+
+  // Layer 1: IP-based Rate Limiting (10 req/hour)
+  const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "unknown";
+  const now = Date.now();
+  const userData = ipCache.get(ip) || { count: 0, firstReset: now };
+
+  // Reset window if more than 1 hour passed
+  if (now - userData.firstReset > 3600000) {
+    userData.count = 1;
+    userData.firstReset = now;
+  } else {
+    userData.count++;
+  }
+  ipCache.set(ip, userData);
+
+  if (userData.count > 10) {
+    return res.status(429).json({ error: "Demasiadas consultas. Esperá un momento antes de continuar." });
+  }
+
+  // Layer 2: Supabase-based Rate Limiting (20 analysis/day)
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    const token = authHeader.split(" ")[1];
+    const supabaseAdmin = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+
+    if (user && !authError) {
+      // Call Supabase RPC function (assumed to exist in DB as per user instructions)
+      const { data: canProceed, error: rpcError } = await supabaseAdmin.rpc("check_rate_limit", { user_id: user.id });
+      if (rpcError) console.error("RPC Error:", rpcError);
+      
+      if (canProceed === false) {
+        return res.status(429).json({ error: "Límite diario alcanzado (20 análisis/día). Volvé mañana." });
+      }
+    }
+  }
+
 
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });

@@ -700,9 +700,13 @@ function CoachTool({ user }) {
 
     // Extracts, parses and validates one response from the API
     async function attemptFetch() {
+      const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch("/api/coach", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": session?.access_token ? `Bearer ${session.access_token}` : ""
+        },
         body: JSON.stringify({
           champion: myChamp,
           lane: myLane,
@@ -714,6 +718,10 @@ function CoachTool({ user }) {
       });
 
       if (!res.ok) {
+        if (res.status === 429) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || "Demasiadas consultas. Esperá un momento.");
+        }
         if (res.status === 504) {
           throw new Error("La IA tardó demasiado. Intentá con menos campeones opcionales o probá de nuevo.");
         }
