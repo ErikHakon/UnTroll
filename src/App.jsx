@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabaseClient";
+import HCaptcha from '@hcaptcha/react-hcaptcha';
 
 /* ─── Champion Data ─── */
 const CHAMPIONS = [
@@ -1078,6 +1079,8 @@ export default function App() {
   const [authError, setAuthError] = useState(null);
   const [authLoading, setAuthLoading] = useState(false);
   const [sessionLoading, setSessionLoading] = useState(true);
+  const captchaRef = useRef(null);
+  const [captchaToken, setCaptchaToken] = useState(null);
 
   const REGIONS = ["LAS","LAN","NA","EUW","EUNE","KR","JP","BR","OCE","TR","RU"];
 
@@ -1162,6 +1165,11 @@ export default function App() {
           setAuthLoading(false);
           return;
         }
+        if (!captchaToken) {
+          setAuthError("Completá el captcha");
+          setAuthLoading(false);
+          return;
+        }
 
         const { data, error } = await supabase.auth.signUp({
           email: authForm.email,
@@ -1171,6 +1179,7 @@ export default function App() {
               username: authForm.username,
               region: authForm.region,
             },
+            captchaToken,
           },
         });
 
@@ -1207,6 +1216,8 @@ export default function App() {
         setPage("home");
       }
 
+      captchaRef.current?.resetCaptcha();
+      setCaptchaToken(null);
       setAuthForm({ email:"", password:"", username:"", region:"LAS" });
     } catch (err) {
       setAuthError("Error de conexión. Intentá de nuevo.");
@@ -1508,6 +1519,18 @@ export default function App() {
                       onChange={(e) => setAuthForm({...authForm, region: e.target.value})}>
                       {REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
                     </select>
+                  </div>
+                )}
+
+                {authMode === "register" && (
+                  <div style={{ display:"flex", justifyContent:"center" }}>
+                    <HCaptcha
+                      sitekey="d3906290-46ee-45dc-afba-f168c6a03a2a"
+                      onVerify={(token) => setCaptchaToken(token)}
+                      onExpire={() => setCaptchaToken(null)}
+                      ref={captchaRef}
+                      theme="dark"
+                    />
                   </div>
                 )}
 
