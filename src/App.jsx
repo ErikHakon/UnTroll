@@ -1525,7 +1525,7 @@ export default function App() {
                 {authMode === "register" && (
                   <div style={{ display:"flex", justifyContent:"center" }}>
                     <HCaptcha
-                      sitekey="d3906290-46ee-45dc-afba-f168c6a03a2a"
+                      sitekey="85bed5bc-7136-4836-9534-abb4b64af390"
                       onVerify={(token) => setCaptchaToken(token)}
                       onExpire={() => setCaptchaToken(null)}
                       ref={captchaRef}
