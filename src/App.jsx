@@ -1108,11 +1108,33 @@ export default function App() {
 
   const fetchProfile = async (authUser) => {
     try {
-      const { data, error } = await supabase
+      // Intentar obtener el perfil existente
+      let { data, error } = await supabase
         .from("profiles")
         .select("username, region, tier, generations_today")
         .eq("id", authUser.id)
         .single();
+
+      // Si no existe el perfil (común en primer login OAuth), intentamos crearlo
+      if (error && error.code === "PGRST116" || !data) {
+        // El trigger de Supabase debería crearlo, pero por seguridad hacemos un insert manual (upsert)
+        const newProfile = {
+          id: authUser.id,
+          email: authUser.email,
+          username: authUser.user_metadata?.username || null,
+          region: authUser.user_metadata?.region || null,
+          tier: "free",
+          generations_today: 0
+        };
+
+        const { data: upsertData, error: upsertError } = await supabase
+          .from("profiles")
+          .upsert(newProfile, { onConflict: "id" })
+          .select()
+          .single();
+        
+        if (!upsertError) data = upsertData;
+      }
 
       if (data) {
         setUser({
@@ -1122,9 +1144,10 @@ export default function App() {
           region: data.region,
           tier: data.tier,
           generations_today: data.generations_today,
+          isIncomplete: !data.username || !data.region // Marcamos si falta info básica
         });
       } else {
-        // Fallback if profile not created yet by trigger
+        // Fallback extremo
         setUser({
           id: authUser.id,
           email: authUser.email,
@@ -1132,20 +1155,31 @@ export default function App() {
           region: authUser.user_metadata?.region || "LAS",
           tier: "free",
           generations_today: 0,
+          isIncomplete: true
         });
       }
     } catch (err) {
-      console.error("Error fetching profile:", err);
-      setUser({
-        id: authUser.id,
-        email: authUser.email,
-        username: authUser.email?.split("@")[0] || "Invocador",
-        region: "LAS",
-        tier: "free",
-        generations_today: 0,
-      });
+      console.error("Error fetching/creating profile:", err);
+      setSessionLoading(false);
     }
     setSessionLoading(false);
+  };
+
+  const handleOAuth = async (provider) => {
+    setAuthLoading(true);
+    setAuthError(null);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
+      if (error) throw error;
+    } catch (err) {
+      setAuthError(translateAuthError(err.message));
+      setAuthLoading(false);
+    }
   };
 
   const handleAuth = async (e) => {
@@ -1476,6 +1510,32 @@ export default function App() {
             </div>
 
             <div style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.06)", borderRadius:16, padding:32 }}>
+              {/* OAuth Buttons */}
+              <div style={{ display:"flex", flexDirection:"column", gap:10, marginBottom:20 }}>
+                <button onClick={() => handleOAuth("google")} style={{
+                  width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:12,
+                  padding:"12px", background:"#fff", color:"#000", border:"none", borderRadius:8,
+                  fontSize:14, fontWeight:700, cursor:"pointer", transition:"all 0.2s",
+                }} onMouseEnter={(e) => e.currentTarget.style.transform="translateY(-1px)"} onMouseLeave={(e) => e.currentTarget.style.transform="translateY(0)"}>
+                  <svg width="18" height="18" viewBox="0 0 18 18"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" fill="#34A853"/><path d="M3.964 10.712c-.18-.54-.282-1.117-.282-1.71s.102-1.17.282-1.71V4.96H.957C.347 6.173 0 7.548 0 9s.347 2.827.957 4.04l3.007-2.328z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
+                  Continuar con Google
+                </button>
+                <button onClick={() => handleOAuth("discord")} style={{
+                  width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:12,
+                  padding:"12px", background:"#5865F2", color:"#fff", border:"none", borderRadius:8,
+                  fontSize:14, fontWeight:700, cursor:"pointer", transition:"all 0.2s",
+                }} onMouseEnter={(e) => e.currentTarget.style.transform="translateY(-1px)"} onMouseLeave={(e) => e.currentTarget.style.transform="translateY(0)"}>
+                  <svg width="20" height="16" viewBox="0 0 127.14 96.36" fill="white"><path d="M107.7,8.07c-8.7-4-18.1-7.1-28-8.1a.48.48,0,0,0-.5.2c-1.2,2.1-2.6,5.3-3.6,7.7a72.5,72.5,0,0,0-34.4,0c-1-2.4-2.4-5.6-3.6-7.7a.48.48,0,0,0-.5-.2c-10,1-19.4,4.1-28,8.1a.54.54,0,0,0-.25.19C1.1,20.6-2.4,44.7,1.2,65.8a.62.62,0,0,0,.26.41c11.7,8.5,23.3,13.7,34.6,17.2a.51.51,0,0,0,.55-.18c2.7-3.6,5-7.5,6.9-11.6a.48.48,0,0,0-.24-.63c-3.7-1.4-7.2-3.1-10.6-5.1a.48.48,0,0,1,0-.81c.7-.5,1.4-1,2-1.5a.46.46,0,0,1,.48-.06c22.5,10.4,47.1,10.4,69.1,0a.44.44,0,0,1,.48.07c.6.5,1.3,1,2,1.5a.48.48,0,0,1,0,.81c-3.4,2-6.9,3.7-10.6,5.1a.48.48,0,0,0-.24.63c1.9,4.1,4.2,8,6.9,11.6a.51.51,0,0,0,.55.18c11.3-3.5,22.9-8.7,34.6-17.2a.56.56,0,0,0,.26-.41c4.4-27.7-7.4-51.5-17.9-65.4A.53.53,0,0,0,107.7,8.07ZM42.4,63.9c-6.7,0-12.2-6.1-12.2-13.6s5.3-13.6,12.2-13.6,12.3,6.1,12.3,13.6S49.2,63.9,42.4,63.9Zm42.2,0c-6.7,0-12.2-6.1-12.2-13.6s5.3-13.6,12.2-13.6,12.3,6.1,12.3,13.6S91.3,63.9,84.7,63.9Z"/></svg>
+                  Continuar con Discord
+                </button>
+              </div>
+
+              <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:20, color:"#3a3a3a" }}>
+                <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.06)" }} />
+                <span style={{ fontSize:12, fontWeight:700, letterSpacing:1 }}>O</span>
+                <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.06)" }} />
+              </div>
+
               {/* Auth mode tabs */}
               <div style={{ display:"flex", gap:4, background:"rgba(0,0,0,0.3)", borderRadius:8, padding:3, marginBottom:24 }}>
                 {["login","register"].map(m => (
@@ -1604,6 +1664,25 @@ export default function App() {
         <div>
           {/* Hero */}
           <div className="hero-section" style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", position:"relative", overflow:"hidden", padding:"80px 24px" }}>
+            {user?.isIncomplete && (
+              <div style={{
+                position:"fixed", top:80, left:"50%", transform:"translateX(-50%)", zIndex:2000,
+                width:"90%", maxWidth:600, background:"rgba(200,155,60,0.15)", backdropFilter:"blur(10px)",
+                border:"1px solid rgba(200,155,60,0.3)", borderRadius:12, padding:"12px 20px",
+                display:"flex", alignItems:"center", gap:15, boxShadow:"0 8px 32px rgba(0,0,0,0.4)",
+                animation:"fadeUp 0.5s ease forwards"
+              }}>
+                <div style={{ fontSize:24 }}>⚠️</div>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:14, fontWeight:800, color:"#f0e6d2", marginBottom:2 }}>Perfil Incompleto</div>
+                  <div style={{ fontSize:12, color:"#c8c0b0" }}>Para generar un game plan, primero debés configurar tu nombre de invocador y región.</div>
+                </div>
+                <button onClick={() => { setAuthMode("register"); setPage("auth"); }} style={{
+                  background:"#c89b3c", color:"#080810", border:"none", borderRadius:6,
+                  padding:"6px 14px", fontSize:12, fontWeight:800, cursor:"pointer"
+                }}>Completar</button>
+              </div>
+            )}
             <div style={{ position:"absolute", inset:0, background:"radial-gradient(ellipse 60% 50% at 50% 40%, rgba(200,155,60,0.06) 0%, transparent 70%)" }} />
             <div style={{ position:"absolute", top:"15%", left:"10%", width:400, height:400, borderRadius:"50%", background:"radial-gradient(circle, rgba(200,155,60,0.04) 0%, transparent 70%)", filter:"blur(60px)" }} />
             <div style={{ position:"absolute", bottom:"20%", right:"10%", width:300, height:300, borderRadius:"50%", background:"radial-gradient(circle, rgba(10,203,230,0.03) 0%, transparent 70%)", filter:"blur(50px)" }} />
