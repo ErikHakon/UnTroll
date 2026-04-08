@@ -1172,7 +1172,7 @@ export default function App() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: window.location.origin
+          redirectTo: "https://untroll.gg"
         }
       });
       if (error) throw error;
