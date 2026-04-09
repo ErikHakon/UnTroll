@@ -1183,9 +1183,9 @@ export default function App() {
           region: data.region,
           tier: data.tier,
           generations_today: data.generations_today,
-          isIncomplete: !data.username || !data.region
+          isIncomplete: !data.username || !data.region || data.username === "pendiente"
         });
-        if (!data.username || !data.region) setShowCompleteModal(true);
+        if (!data.username || !data.region || data.username === "pendiente") setShowCompleteModal(true);
       } else {
         // Fallback extremo
         setUser({
@@ -1330,6 +1330,12 @@ export default function App() {
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      setProfileForm({ username: user.username || "", region: user.region || "LAS" });
+    }
+  }, [user]);
 
   const scrollToTool = () => {
     setPage("home");

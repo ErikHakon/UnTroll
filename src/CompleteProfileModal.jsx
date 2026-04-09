@@ -1,10 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const REGIONS = ["LAS", "LAN", "NA", "EUW", "EUNE", "KR", "JP", "BR", "OCE", "TR", "RU"];
 
 const CompleteProfileModal = React.memo(({ onSave, loading, initialUsername = "", initialRegion = "LAS" }) => {
   const [username, setUsername] = useState(initialUsername);
   const [region, setRegion] = useState(initialRegion);
+
+  useEffect(() => {
+    if (initialUsername) setUsername(initialUsername);
+    if (initialRegion) setRegion(initialRegion);
+  }, [initialUsername, initialRegion]);
 
   return (
     <div style={{
