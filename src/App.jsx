@@ -1153,7 +1153,7 @@ export default function App() {
         .single();
 
       // Si no existe el perfil (común en primer login OAuth), intentamos crearlo
-      if (error && error.code === "PGRST116" || !data) {
+      if ((error && error.code === "PGRST116") || (!error && !data)) {
         // Problema 1 Fix: Siempre guardamos username como null en el primer login/upsert OAuth
         // para forzar al usuario a elegir su Summoner Name real.
         const newProfile = {
@@ -1347,11 +1347,8 @@ export default function App() {
       
       if (error) throw error;
       
-      // Sincronizar con la base de datos directamente
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (authUser) {
-        await fetchProfile(authUser);
-      }
+      // Actualizar estado local directamente (evita race condition en re-fetch)
+      setUser(prev => ({ ...prev, username: u, region: r, isIncomplete: false }));
       
       setShowCompleteModal(false);
       setProfileLoading(false);
