@@ -1303,10 +1303,12 @@ export default function App() {
           return;
         }
 
-        // Ejecutar captcha invisible antes del login si aún no hay token
-        if (!captchaToken) {
+        // Ejecutar captcha y capturar token directamente del return (no del estado React)
+        let loginCaptchaToken = captchaToken;
+        if (!loginCaptchaToken) {
           try {
-            await captchaRef.current?.execute({ async: true });
+            const result = await captchaRef.current?.execute({ async: true });
+            loginCaptchaToken = result?.response || null;
           } catch {
             // Si falla el execute, continuamos igual — Supabase decide
           }
@@ -1315,7 +1317,7 @@ export default function App() {
         const { data, error } = await supabase.auth.signInWithPassword({
           email: authForm.email,
           password: authForm.password,
-          options: { captchaToken: captchaToken || undefined },
+          options: { captchaToken: loginCaptchaToken || undefined },
         });
 
         if (error) {
