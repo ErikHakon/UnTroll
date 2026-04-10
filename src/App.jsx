@@ -1153,7 +1153,7 @@ export default function App() {
       // Intentar obtener el perfil existente
       let { data, error } = await supabase
         .from("profiles")
-        .select("username, region, tier, generations_today")
+        .select("username, region, tier, generations_today, profile_setup_complete")
         .eq("id", authUser.id)
         .single();
 
@@ -1167,7 +1167,8 @@ export default function App() {
           username: null, 
           region: null,
           tier: "free",
-          generations_today: 0
+          generations_today: 0,
+          profile_setup_complete: false
         };
 
         const { data: upsertData, error: upsertError } = await supabase
@@ -1188,9 +1189,9 @@ export default function App() {
           region: data.region,
           tier: data.tier,
           generations_today: data.generations_today,
-          isIncomplete: !data.username || !data.region || data.username === "pendiente"
+          isIncomplete: !data.profile_setup_complete
         });
-        if (!data.username || !data.region || data.username === "pendiente") setShowCompleteModal(true);
+        if (!data.profile_setup_complete) setShowCompleteModal(true);
       } else {
         // Fallback extremo
         setUser({
@@ -1358,7 +1359,7 @@ export default function App() {
     try {
       const { error } = await supabase
         .from("profiles")
-        .update({ username: u, region: r })
+        .update({ username: u, region: r, profile_setup_complete: true })
         .eq("id", user.id);
       
       if (error) throw error;
