@@ -17,34 +17,53 @@ export default async function handler(req, res) {
     const data = await resend.emails.send({
       from: 'UnTroll <onboarding@resend.dev>',
       to: [email],
-      subject: `¡Bienvenido a UnTroll, ${username}!`,
+      subject: `¡Bienvenido a UnTroll, ${username}! Tu coach ya está listo`,
       html: `
-        <div style="background-color: #080810; color: #c8c8c8; font-family: 'Outfit', sans-serif; padding: 40px; border-radius: 12px; max-width: 600px; margin: 0 auto; border: 1px solid rgba(200, 155, 60, 0.2);">
-          <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #f0e6d2; font-size: 28px; font-weight: 900; margin-top: 0; letter-spacing: -1px;">¡HOLA, ${username.toUpperCase()}!</h1>
+        <div style="background-color: #f9f9f9; color: #333333; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; border-radius: 8px; overflow: hidden; border: 1px solid #eeeeee;">
+          <!-- Header -->
+          <div style="background-color: #080810; padding: 30px; text-align: center;">
+            <h1 style="color: #c89b3c; font-size: 32px; font-weight: 900; margin: 0; letter-spacing: 2px;">UNTROLL</h1>
+            <p style="color: #ffffff; font-size: 14px; margin: 5px 0 0; opacity: 0.8; letter-spacing: 1px;">Tu coach challenger personal de LoL</p>
           </div>
           
-          <div style="line-height: 1.6; font-size: 16px;">
-            <p>Bienvenido a <strong>UnTroll</strong>, tu nuevo coach personal de League of Legends impulsado por Inteligencia Artificial.</p>
-            <p>A partir de ahora, ya no tenés que depender de estadísticas genéricas. UnTroll analiza la composición exacta de tu partida para darte el mejor <strong>game plan</strong>, <strong>builds</strong> y <strong>estrategia</strong> adaptada a lo que realmente está pasando en la Grieta.</p>
+          <!-- Gold Separator -->
+          <div style="height: 3px; background-color: #c89b3c;"></div>
+
+          <!-- Content -->
+          <div style="padding: 40px 30px;">
+            <h2 style="font-size: 24px; font-weight: 800; color: #080810; margin-top: 0;">¡Hola, ${username}!</h2>
+            <p style="font-size: 16px; line-height: 1.6; color: #444444;">
+              Bienvenido a <strong>UnTroll</strong>. Tu acceso a la mejor tecnología de análisis contextual para League of Legends ya está activo.
+            </p>
+            <p style="font-size: 16px; line-height: 1.6; color: #444444;">
+              A partir de ahora, ya no tenés que depender de estadísticas genéricas. Analizamos las dos composiciones en tiempo real para darte el <strong>game plan</strong> que realmente necesitás para ganar.
+            </p>
             
-            <div style="background: rgba(200, 155, 60, 0.05); border: 1px solid rgba(200, 155, 60, 0.1); border-radius: 10px; padding: 20px; margin: 30px 0;">
-              <h3 style="color: #c89b3c; margin-top: 0;">¿Cómo empezar?</h3>
-              <ul style="padding-left: 20px;">
-                <li style="margin-bottom: 10px;">Entrá a la web y seleccioná los 10 campeones de la partida.</li>
-                <li style="margin-bottom: 10px;">Presioná "Generar Game Plan".</li>
-                <li>Recibí consejos challenger en menos de 10 segundos.</li>
-              </ul>
+            <!-- Tutorial Box -->
+            <div style="background-color: #080810; border: 1px solid #c89b3c; border-radius: 12px; padding: 25px; margin: 30px 0; color: #ffffff;">
+              <h3 style="color: #c89b3c; margin-top: 0; font-size: 18px;">¿Cómo empezar?</h3>
+              <div style="font-size: 14px; line-height: 1.8;">
+                <div style="margin-bottom: 8px;">• Entrá a la web y seleccioná los 10 campeones.</div>
+                <div style="margin-bottom: 8px;">• Presioná <strong>"Generar Game Plan"</strong>.</div>
+                <div>• Recibí consejos de nivel challenger en segundos.</div>
+              </div>
             </div>
             
-            <div style="text-align: center; margin: 40px 0;">
-              <a href="https://untroll.gg" style="background: linear-gradient(135deg, #c89b3c, #a07830); color: #080810; padding: 16px 32px; border-radius: 8px; text-decoration: none; font-weight: 800; font-size: 16px; display: inline-block;">IR AL COACH</a>
+            <!-- CTA Button -->
+            <div style="text-align: center; margin: 35px 0;">
+              <a href="https://untroll.gg" style="background-color: #c89b3c; color: #080810; padding: 18px 35px; border-radius: 8px; text-decoration: none; font-weight: 800; font-size: 16px; display: inline-block;">
+                IR AL COACH
+              </a>
             </div>
           </div>
           
-          <div style="border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 20px; margin-top: 40px; text-align: center; font-size: 12px; color: #5b5a56;">
-            <p>UnTroll · Tu coach challenger personal de LoL</p>
-            <p><a href="https://untroll.gg" style="color: #c89b3c; text-decoration: none;">untroll.gg</a></p>
+          <!-- Footer -->
+          <div style="background-color: #080810; padding: 30px; text-align: center; font-size: 12px; color: #888888;">
+            <p style="margin: 0 0 10px;">Analizá. Adaptate. Ganá.</p>
+            <p style="margin: 0;">
+              UnTroll © 2026 · 
+              <a href="https://untroll.gg" style="color: #c89b3c; text-decoration: none; font-weight: 700;">untroll.gg</a>
+            </p>
           </div>
         </div>
       `,
