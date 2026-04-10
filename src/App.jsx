@@ -1296,16 +1296,17 @@ export default function App() {
           return;
         }
 
-        // Si hay 3+ intentos fallidos, requerir captcha
+        // Con 3+ intentos: el widget hCaptcha es visible y el usuario debe completarlo
+        // El token llega via onVerify cuando el usuario interactúa o hCaptcha lo aprueba en background
         if (loginAttempts >= 3 && !captchaToken) {
-          setAuthError("Completá la verificación de seguridad");
+          setAuthError("Completá la verificación de seguridad para continuar.");
           setAuthLoading(false);
           return;
         }
 
-        // Ejecutar captcha y capturar token directamente del return (no del estado React)
+        // Con menos de 3 intentos: ejecutar captcha invisible en background
         let loginCaptchaToken = captchaToken;
-        if (!loginCaptchaToken) {
+        if (!loginCaptchaToken && loginAttempts < 3) {
           try {
             const result = await captchaRef.current?.execute({ async: true });
             loginCaptchaToken = result?.response || null;
@@ -1810,16 +1811,26 @@ export default function App() {
                         Varios intentos detectados. Confirmá que sos humano para continuar.
                       </p>
                     )}
-                    <div style={{ visibility: loginAttempts >= 3 ? "visible" : "hidden", height: loginAttempts >= 3 ? "auto" : 0, overflow:"hidden" }}>
+                    {loginAttempts >= 3 ? (
                       <HCaptcha
                         sitekey="85bed5bc-7136-4836-9534-abb4b64af390"
                         onVerify={(token) => setCaptchaToken(token)}
                         onExpire={() => setCaptchaToken(null)}
                         ref={captchaRef}
                         theme="dark"
-                        size="invisible"
                       />
-                    </div>
+                    ) : (
+                      <div style={{ position:"absolute", opacity:0, pointerEvents:"none", width:0, height:0, overflow:"hidden" }}>
+                        <HCaptcha
+                          sitekey="85bed5bc-7136-4836-9534-abb4b64af390"
+                          onVerify={(token) => setCaptchaToken(token)}
+                          onExpire={() => setCaptchaToken(null)}
+                          ref={captchaRef}
+                          theme="dark"
+                          size="invisible"
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
 
