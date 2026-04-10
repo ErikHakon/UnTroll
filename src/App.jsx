@@ -1138,6 +1138,10 @@ export default function App() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
+        // Limpiar tokens de OAuth de la URL si existen
+        if (window.location.hash.includes('access_token') || window.location.search.includes('code=')) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
         fetchProfile(session.user);
       } else {
         setUser(null);
@@ -1225,7 +1229,7 @@ export default function App() {
       });
       if (error) throw error;
     } catch (err) {
-      setAuthError(translateAuthError(err.message));
+      setAuthError(translateAuthError(err.message, err.code));
       setAuthLoading(false);
     }
   };
@@ -1271,14 +1275,16 @@ export default function App() {
         });
 
         if (error) {
-          setAuthError(translateAuthError(error.message));
+          setAuthError(translateAuthError(error.message, error.code));
           setAuthLoading(false);
           return;
         }
 
         // If email confirmation is disabled, user is logged in immediately
         if (data.user && data.user.identities?.length === 0) {
-          setAuthError("Este email ya está registrado. Intentá iniciar sesión.");
+          setAuthError("Este email ya está registrado. ¿Querés iniciar sesión?");
+          setAuthLoading(false);
+          return;
         } else {
           setPage("home");
         }
@@ -1295,7 +1301,7 @@ export default function App() {
         });
 
         if (error) {
-          setAuthError(translateAuthError(error.message));
+          setAuthError(translateAuthError(error.message, error.code));
           setAuthLoading(false);
           return;
         }
@@ -1313,20 +1319,24 @@ export default function App() {
     }
   };
 
-  const translateAuthError = (msg) => {
+  const translateAuthError = (msg, code) => {
+    if (!msg && !code) return "Ocurrió un error. Intentá de nuevo.";
+    const str = msg || "";
     const map = {
       "Invalid login credentials": "Email o contraseña incorrectos",
+      "invalid_credentials": "Email o contraseña incorrectos",
       "User already registered": "Este email ya está registrado",
       "Email not confirmed": "Confirmá tu email antes de iniciar sesión",
       "Signup requires a valid password": "La contraseña no es válida",
       "Password should be at least 6 characters": "La contraseña debe tener al menos 6 caracteres",
       "Email rate limit exceeded": "Demasiados intentos. Esperá unos minutos.",
       "For security purposes, you can only request this after": "Demasiados intentos. Esperá unos segundos.",
+      "over_email_send_rate_limit": "Demasiados intentos. Esperá unos minutos.",
     };
     for (const [key, val] of Object.entries(map)) {
-      if (msg.includes(key)) return val;
+      if (str.includes(key) || code === key) return val;
     }
-    return msg;
+    return str || "Ocurrió un error. Intentá de nuevo.";
   };
 
   const logout = async () => {
@@ -1766,7 +1776,8 @@ export default function App() {
                 )}
 
                 {authError && (
-                  <div style={{ background:"rgba(232,64,87,0.08)", border:"1px solid rgba(232,64,87,0.2)", borderRadius:8, padding:"10px 14px", color:"#e84057", fontSize:13 }}>
+                  <div style={{ background:"rgba(232,64,87,0.12)", border:"1px solid rgba(232,64,87,0.4)", borderRadius:8, padding:"12px 16px", color:"#ff5a72", fontSize:13, fontWeight:600, display:"flex", alignItems:"center", gap:8 }}>
+                    <span style={{ fontSize:16, flexShrink:0 }}>⚠️</span>
                     {authError}
                   </div>
                 )}
@@ -1875,7 +1886,7 @@ export default function App() {
                 {profileLoading ? "Guardando..." : "Guardar cambios"}
               </button>
 
-              {user?.provider === 'email' && (
+              {user && !['google', 'discord'].includes(user.provider) && (
                 <>
                   <div style={{ height:1, background:"rgba(255,255,255,0.04)", margin:"8px 0" }} />
                   <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
@@ -1907,6 +1918,16 @@ export default function App() {
                     </button>
                   </div>
                 </>
+              )}
+
+              {user && ['google', 'discord'].includes(user.provider) && (
+                <div style={{ display:"flex", alignItems:"center", gap:12, padding:"16px 20px", background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.06)", borderRadius:12 }}>
+                  <span style={{ fontSize:20 }}>{user.provider === 'google' ? '🔵' : '🟣'}</span>
+                  <div>
+                    <div style={{ fontSize:13, fontWeight:700, color:"#f0e6d2", marginBottom:2 }}>Contraseña gestionada por {user.provider === 'google' ? 'Google' : 'Discord'}</div>
+                    <div style={{ fontSize:12, color:"#5b5a56" }}>Cambiá tu contraseña directamente desde tu cuenta de {user.provider === 'google' ? 'Google' : 'Discord'}.</div>
+                  </div>
+                </div>
               )}
             </div>
           </div>
