@@ -17,12 +17,11 @@ export default async function handler(req, res) {
     const data = await resend.emails.send({
       from: 'UnTroll <onboarding@resend.dev>',
       to: [email],
-      subject: `¡Bienvenido a UnTroll, ${username}! ⚡`,
+      subject: `¡Bienvenido a UnTroll, ${username}!`,
       html: `
         <div style="background-color: #080810; color: #c8c8c8; font-family: 'Outfit', sans-serif; padding: 40px; border-radius: 12px; max-width: 600px; margin: 0 auto; border: 1px solid rgba(200, 155, 60, 0.2);">
           <div style="text-align: center; margin-bottom: 30px;">
-            <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #c89b3c, #785a28); border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; font-size: 24px;">⚡</div>
-            <h1 style="color: #f0e6d2; font-size: 28px; font-weight: 900; margin-top: 20px; letter-spacing: -1px;">¡HOLA, ${username.toUpperCase()}!</h1>
+            <h1 style="color: #f0e6d2; font-size: 28px; font-weight: 900; margin-top: 0; letter-spacing: -1px;">¡HOLA, ${username.toUpperCase()}!</h1>
           </div>
           
           <div style="line-height: 1.6; font-size: 16px;">
