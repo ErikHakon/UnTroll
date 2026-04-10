@@ -1163,7 +1163,6 @@ export default function App() {
         // para forzar al usuario a elegir su Summoner Name real.
         const newProfile = {
           id: authUser.id,
-          email: authUser.email,
           username: null, 
           region: null,
           tier: "free",
