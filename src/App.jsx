@@ -1303,26 +1303,35 @@ export default function App() {
           return;
         }
 
+        // Ejecutar captcha invisible antes del login si aún no hay token
+        if (!captchaToken) {
+          try {
+            await captchaRef.current?.execute({ async: true });
+          } catch {
+            // Si falla el execute, continuamos igual — Supabase decide
+          }
+        }
+
         const { data, error } = await supabase.auth.signInWithPassword({
           email: authForm.email,
           password: authForm.password,
+          options: { captchaToken: captchaToken || undefined },
         });
 
         if (error) {
           const newAttempts = loginAttempts + 1;
           setLoginAttempts(newAttempts);
           setAuthError(translateAuthError(error.message, error.code));
-          // Resetear captcha si ya se había resuelto (para pedir uno nuevo)
-          if (captchaToken) {
-            captchaRef.current?.resetCaptcha();
-            setCaptchaToken(null);
-          }
+          captchaRef.current?.resetCaptcha();
+          setCaptchaToken(null);
           setAuthLoading(false);
           return;
         }
 
         // Login exitoso: resetear contador
         setLoginAttempts(0);
+        captchaRef.current?.resetCaptcha();
+        setCaptchaToken(null);
         setPage("home");
       }
 
@@ -1780,13 +1789,8 @@ export default function App() {
                   </div>
                 )}
 
-                {(authMode === "register" || (authMode === "login" && loginAttempts >= 3)) && (
-                  <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:8 }}>
-                    {authMode === "login" && loginAttempts >= 3 && (
-                      <p style={{ color:"#5b5a56", fontSize:12, textAlign:"center" }}>
-                        Varios intentos detectados. Confirmá que sos humano para continuar.
-                      </p>
-                    )}
+                {authMode === "register" && (
+                  <div style={{ display:"flex", justifyContent:"center" }}>
                     <HCaptcha
                       sitekey="85bed5bc-7136-4836-9534-abb4b64af390"
                       onVerify={(token) => setCaptchaToken(token)}
@@ -1794,6 +1798,26 @@ export default function App() {
                       ref={captchaRef}
                       theme="dark"
                     />
+                  </div>
+                )}
+
+                {authMode === "login" && (
+                  <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:8 }}>
+                    {loginAttempts >= 3 && (
+                      <p style={{ color:"#5b5a56", fontSize:12, textAlign:"center" }}>
+                        Varios intentos detectados. Confirmá que sos humano para continuar.
+                      </p>
+                    )}
+                    <div style={{ visibility: loginAttempts >= 3 ? "visible" : "hidden", height: loginAttempts >= 3 ? "auto" : 0, overflow:"hidden" }}>
+                      <HCaptcha
+                        sitekey="85bed5bc-7136-4836-9534-abb4b64af390"
+                        onVerify={(token) => setCaptchaToken(token)}
+                        onExpire={() => setCaptchaToken(null)}
+                        ref={captchaRef}
+                        theme="dark"
+                        size="invisible"
+                      />
+                    </div>
                   </div>
                 )}
 
