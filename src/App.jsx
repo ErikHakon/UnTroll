@@ -1718,7 +1718,7 @@ export default function App() {
                   padding:"12px", background:"#5865F2", color:"#fff", border:"none", borderRadius:8,
                   fontSize:14, fontWeight:700, cursor:"pointer", transition:"all 0.2s",
                 }} onMouseEnter={(e) => e.currentTarget.style.transform="translateY(-1px)"} onMouseLeave={(e) => e.currentTarget.style.transform="translateY(0)"}>
-                  <svg width="20" height="16" viewBox="0 0 127.14 96.36" fill="white"><path d="M107.7,8.07c-8.7-4-18.1-7.1-28-8.1a.48.48,0,0,0-.5.2c-1.2,2.1-2.6,5.3-3.6,7.7a72.5,72.5,0,0,0-34.4,0c-1-2.4-2.4-5.6-3.6-7.7a.48.48,0,0,0-.5-.2c-10,1-19.4,4.1-28,8.1a.54.54,0,0,0-.25.19C1.1,20.6-2.4,44.7,1.2,65.8a.62.62,0,0,0,.26.41c11.7,8.5,23.3,13.7,34.6,17.2a.51.51,0,0,0,.55-.18c2.7-3.6,5-7.5,6.9-11.6a.48.48,0,0,0-.24-.63c-3.7-1.4-7.2-3.1-10.6-5.1a.48.48,0,0,1,0-.81c.7-.5,1.4-1,2-1.5a.46.46,0,0,1,.48-.06c22.5,10.4,47.1,10.4,69.1,0a.44.44,0,0,1,.48.07c.6.5,1.3,1,2,1.5a.48.48,0,0,1,0,.81c-3.4,2-6.9,3.7-10.6,5.1a.48.48,0,0,0-.24.63c1.9,4.1,4.2,8,6.9,11.6a.51.51,0,0,0,.55.18c11.3-3.5,22.9-8.7,34.6-17.2a.56.56,0,0,0,.26-.41c4.4-27.7-7.4-51.5-17.9-65.4A.53.53,0,0,0,107.7,8.07ZM42.4,63.9c-6.7,0-12.2-6.1-12.2-13.6s5.3-13.6,12.2-13.6,12.3,6.1,12.3,13.6S49.2,63.9,42.4,63.9Zm42.2,0c-6.7,0-12.2-6.1-12.2-13.6s5.3-13.6,12.2-13.6,12.3,6.1,12.3,13.6S91.3,63.9,84.7,63.9Z"/></svg>
+                  <svg width="20" height="20" viewBox="0 0 127.14 96.36" fill="white" style={{ flexShrink:0 }}><path d="M107.7,8.07c-8.7-4-18.1-7.1-28-8.1a.48.48,0,0,0-.5.2c-1.2,2.1-2.6,5.3-3.6,7.7a72.5,72.5,0,0,0-34.4,0c-1-2.4-2.4-5.6-3.6-7.7a.48.48,0,0,0-.5-.2c-10,1-19.4,4.1-28,8.1a.54.54,0,0,0-.25.19C1.1,20.6-2.4,44.7,1.2,65.8a.62.62,0,0,0,.26.41c11.7,8.5,23.3,13.7,34.6,17.2a.51.51,0,0,0,.55-.18c2.7-3.6,5-7.5,6.9-11.6a.48.48,0,0,0-.24-.63c-3.7-1.4-7.2-3.1-10.6-5.1a.48.48,0,0,1,0-.81c.7-.5,1.4-1,2-1.5a.46.46,0,0,1,.48-.06c22.5,10.4,47.1,10.4,69.1,0a.44.44,0,0,1,.48.07c.6.5,1.3,1,2,1.5a.48.48,0,0,1,0,.81c-3.4,2-6.9,3.7-10.6,5.1a.48.48,0,0,0-.24.63c1.9,4.1,4.2,8,6.9,11.6a.51.51,0,0,0,.55.18c11.3-3.5,22.9-8.7,34.6-17.2a.56.56,0,0,0,.26-.41c4.4-27.7-7.4-51.5-17.9-65.4A.53.53,0,0,0,107.7,8.07ZM42.4,63.9c-6.7,0-12.2-6.1-12.2-13.6s5.3-13.6,12.2-13.6,12.3,6.1,12.3,13.6S49.2,63.9,42.4,63.9Zm42.2,0c-6.7,0-12.2-6.1-12.2-13.6s5.3-13.6,12.2-13.6,12.3,6.1,12.3,13.6S91.3,63.9,84.7,63.9Z"/></svg>
                   Continuar con Discord
                 </button>
               </div>
@@ -1763,8 +1763,12 @@ export default function App() {
                   <label style={{ display:"block", fontSize:11, fontWeight:700, color:"#5b5a56", textTransform:"uppercase", letterSpacing:"1px", marginBottom:6 }}>Contraseña</label>
                   <input className="auth-input" type={showPass ? "text" : "password"} placeholder={authMode === "register" ? "Mínimo 6 caracteres" : "Tu contraseña"}
                     value={authForm.password} onChange={(e) => setAuthForm({...authForm, password: e.target.value})} />
-                  <button type="button" onClick={() => setShowPass(!showPass)} style={{ position:"absolute", right:12, bottom:12, background:"none", border:"none", color:"#5b5a56", cursor:"pointer", fontSize:16 }}>
-                    {showPass ? "👁️" : "🙈"}
+                  <button type="button" onClick={() => setShowPass(!showPass)} style={{ position:"absolute", right:12, bottom:12, background:"none", border:"none", color:"#5b5a56", cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    {showPass ? (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    ) : (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    )}
                   </button>
                 </div>
 
@@ -1773,8 +1777,12 @@ export default function App() {
                     <label style={{ display:"block", fontSize:11, fontWeight:700, color:"#5b5a56", textTransform:"uppercase", letterSpacing:"1px", marginBottom:6 }}>Repetir Contraseña</label>
                     <input className="auth-input" type={showConfirmPass ? "text" : "password"} placeholder="Repetí tu contraseña"
                       value={authForm.confirmPassword} onChange={(e) => setAuthForm({...authForm, confirmPassword: e.target.value})} />
-                    <button type="button" onClick={() => setShowConfirmPass(!showConfirmPass)} style={{ position:"absolute", right:12, bottom:12, background:"none", border:"none", color:"#5b5a56", cursor:"pointer", fontSize:16 }}>
-                      {showConfirmPass ? "👁️" : "🙈"}
+                    <button type="button" onClick={() => setShowConfirmPass(!showConfirmPass)} style={{ position:"absolute", right:12, bottom:12, background:"none", border:"none", color:"#5b5a56", cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      {showConfirmPass ? (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      ) : (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                      )}
                     </button>
                     {authForm.confirmPassword && authForm.password !== authForm.confirmPassword && (
                       <div style={{ color:"#e84057", fontSize:11, marginTop:4, fontWeight:600 }}>Las contraseñas no coinciden</div>
@@ -1954,15 +1962,23 @@ export default function App() {
                       <div style={{ position:"relative" }}>
                         <label style={{ display:"block", fontSize:11, fontWeight:700, color:"#5b5a56", textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>Nueva contraseña</label>
                         <input className="auth-input" type={showPass ? "text" : "password"} value={passForm.password} onChange={(e) => setPassForm({...passForm, password: e.target.value})} placeholder="Mínimo 6 caracteres" />
-                        <button type="button" onClick={() => setShowPass(!showPass)} style={{ position:"absolute", right:12, bottom:12, background:"none", border:"none", color:"#5b5a56", cursor:"pointer", fontSize:16 }}>
-                          {showPass ? "👁️" : "🙈"}
+                        <button type="button" onClick={() => setShowPass(!showPass)} style={{ position:"absolute", right:12, bottom:12, background:"none", border:"none", color:"#5b5a56", cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                          {showPass ? (
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                          ) : (
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                          )}
                         </button>
                       </div>
                       <div style={{ position:"relative" }}>
                         <label style={{ display:"block", fontSize:11, fontWeight:700, color:"#5b5a56", textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>Repetir nueva contraseña</label>
                         <input className="auth-input" type={showConfirmPass ? "text" : "password"} value={passForm.confirmPassword} onChange={(e) => setPassForm({...passForm, confirmPassword: e.target.value})} placeholder="Confirmá tu contraseña" />
-                        <button type="button" onClick={() => setShowConfirmPass(!showConfirmPass)} style={{ position:"absolute", right:12, bottom:12, background:"none", border:"none", color:"#5b5a56", cursor:"pointer", fontSize:16 }}>
-                          {showConfirmPass ? "👁️" : "🙈"}
+                        <button type="button" onClick={() => setShowConfirmPass(!showConfirmPass)} style={{ position:"absolute", right:12, bottom:12, background:"none", border:"none", color:"#5b5a56", cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                          {showConfirmPass ? (
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                          ) : (
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                          )}
                         </button>
                       </div>
                     </div>
