@@ -1306,18 +1306,15 @@ export default function App() {
         // Resolver username a email si no contiene @
         let loginEmail = authForm.email.trim();
         if (!loginEmail.includes("@")) {
-          const { data: profileData, error: profileError } = await supabase
-            .from("profiles")
-            .select("email")
-            .ilike("username", loginEmail)
-            .single();
+          const { data: emailData, error: emailError } = await supabase
+            .rpc("get_email_by_username", { p_username: loginEmail });
 
-          if (profileError || !profileData?.email) {
+          if (emailError || !emailData) {
             setAuthError("No encontramos ese nombre de invocador");
             setAuthLoading(false);
             return;
           }
-          loginEmail = profileData.email;
+          loginEmail = emailData;
         }
 
         // Con 3+ intentos: el widget hCaptcha es visible y el usuario debe completarlo
