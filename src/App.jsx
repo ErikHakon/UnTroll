@@ -1111,7 +1111,7 @@ export default function App() {
   const [authMode, setAuthMode] = useState("login"); // "login" or "register"
   const [authForm, setAuthForm] = useState({ email:"", password:"", confirmPassword:"", username:"", region:"LAS" });
   const [profileForm, setProfileForm] = useState({ username:"", region:"LAS" });
-  const [passForm, setPassForm] = useState({ password:"", confirmPassword:"" });
+  const [passForm, setPassForm] = useState({ currentPassword:"", password:"", confirmPassword:"" });
   const [passLoading, setPassLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
@@ -1435,6 +1435,10 @@ export default function App() {
   };
 
   const handleUpdatePassword = async () => {
+    if (!passForm.currentPassword) {
+      showToast("Ingresá tu contraseña actual", "error");
+      return;
+    }
     if (passForm.password !== passForm.confirmPassword) {
       showToast("Las contraseñas no coinciden", "error");
       return;
@@ -1443,13 +1447,22 @@ export default function App() {
       showToast("La contraseña debe tener al menos 6 caracteres", "error");
       return;
     }
+    // Verificar contraseña actual intentando login
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: passForm.currentPassword,
+    });
+    if (signInError) {
+      showToast("La contraseña actual es incorrecta", "error");
+      return;
+    }
     
     setPassLoading(true);
     try {
       const { error } = await supabase.auth.updateUser({ password: passForm.password });
       if (error) throw error;
       showToast("Contraseña actualizada correctamente", "success");
-      setPassForm({ password: "", confirmPassword: "" });
+      setPassForm({ currentPassword: "", password: "", confirmPassword: "" });
     } catch (err) {
       console.error(err);
       showToast("Error al actualizar la contraseña", "error");
@@ -1964,6 +1977,10 @@ export default function App() {
                   <div style={{ height:1, background:"rgba(255,255,255,0.04)", margin:"8px 0" }} />
                   <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
                     <h3 style={{ fontSize:18, fontWeight:800, color:"#f0e6d2", margin:0 }}>Cambiar contraseña</h3>
+                    <div style={{ position:"relative" }}>
+                      <label style={{ display:"block", fontSize:11, fontWeight:700, color:"#5b5a56", textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>Contraseña actual</label>
+                      <input className="auth-input" type={showPass ? "text" : "password"} value={passForm.currentPassword} onChange={(e) => setPassForm({...passForm, currentPassword: e.target.value})} placeholder="Tu contraseña actual" />
+                    </div>
                     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20 }}>
                       <div style={{ position:"relative" }}>
                         <label style={{ display:"block", fontSize:11, fontWeight:700, color:"#5b5a56", textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>Nueva contraseña</label>
