@@ -370,14 +370,24 @@ function ItemBadge({ name, itemData, index, color }) {
 
 function BuildRow({ label, value, itemData }) {
   if (!value || !itemData?.exactEN) return null;
-  const foundIds = [];
-  const seen = new Set();
-  
-  // Extract potential item names/keywords from text
-  const words = value.normalize("NFD").replace(/[\u0300-\u036f]/g,"")
-    .split(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ0-9']+/).filter(w => w.length >= 4);
+  const normalizedText = normalize(value);
+  const wordsForSliding = normalizedText.split(/\s+/);
 
-  for (const word of words) {
+  // 1. Sliding window para aliases multi-palabra (4 a 2 palabras)
+  for (let len = 4; len >= 2; len--) {
+    for (let i = 0; i <= wordsForSliding.length - len; i++) {
+      const phrase = wordsForSliding.slice(i, i + len).join(" ");
+      if (phrase.length < 5) continue;
+      const id = findItemId(phrase, itemData);
+      if (id && !seen.has(id)) {
+        foundIds.push(id);
+        seen.add(id);
+      }
+    }
+  }
+
+  // 2. Palabras individuales
+  for (const word of wordsForSliding.filter(w => w.length >= 4)) {
     const id = findItemId(word, itemData);
     if (id && !seen.has(id)) {
       foundIds.push(id);
