@@ -1132,6 +1132,7 @@ export default function App() {
   const [captchaToken, setCaptchaToken] = useState(null);
   const [loginAttempts, setLoginAttempts] = useState(0);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [registerCaptchaNeeded, setRegisterCaptchaNeeded] = useState(false);
 
   const REGIONS = ["LAS","LAN","NA","EUW","EUNE","KR","JP","BR","OCE","TR","RU"];
 
@@ -1266,11 +1267,6 @@ export default function App() {
           setAuthLoading(false);
           return;
         }
-        if (!captchaToken) {
-          setAuthError("Completá el captcha");
-          setAuthLoading(false);
-          return;
-        }
 
         const { data, error } = await supabase.auth.signUp({
           email: authForm.email,
@@ -1285,7 +1281,12 @@ export default function App() {
         });
 
         if (error) {
-          setAuthError(translateAuthError(error.message, error.code));
+          if (error.message.toLowerCase().includes("captcha") || error.code === "captcha_verification_failed") {
+            setRegisterCaptchaNeeded(true);
+            setAuthError("Por favor, completá la verificación de seguridad.");
+          } else {
+            setAuthError(translateAuthError(error.message, error.code));
+          }
           setAuthLoading(false);
           return;
         }
@@ -1325,29 +1326,10 @@ export default function App() {
           loginEmail = emailData;
         }
 
-        // Con 3+ intentos: el widget hCaptcha es visible y el usuario debe completarlo
-        // El token llega via onVerify cuando el usuario interactúa o hCaptcha lo aprueba en background
-        if (loginAttempts >= 3 && !captchaToken) {
-          setAuthError("Completá la verificación de seguridad para continuar.");
-          setAuthLoading(false);
-          return;
-        }
-
-        // Con menos de 3 intentos: ejecutar captcha invisible en background
-        let loginCaptchaToken = captchaToken;
-        if (!loginCaptchaToken && loginAttempts < 3) {
-          try {
-            const result = await captchaRef.current?.execute({ async: true });
-            loginCaptchaToken = result?.response || null;
-          } catch {
-            // Si falla el execute, continuamos igual — Supabase decide
-          }
-        }
-
         const { data, error } = await supabase.auth.signInWithPassword({
           email: loginEmail,
           password: authForm.password,
-          options: { captchaToken: loginCaptchaToken || undefined },
+          options: { captchaToken: captchaToken || undefined },
         });
 
         if (error) {
@@ -1369,6 +1351,7 @@ export default function App() {
 
       captchaRef.current?.resetCaptcha();
       setCaptchaToken(null);
+      setRegisterCaptchaNeeded(false);
       setAuthForm({ email:"", password:"", username:"", region:"LAS" });
     } catch (err) {
       setAuthError("Error de conexión. Intentá de nuevo.");
@@ -1674,13 +1657,13 @@ export default function App() {
               </div>
             ) : (
               <div style={{ display:"flex", gap:10, alignItems:"center" }}>
-                <button onClick={() => { setAuthMode("login"); setPage("auth"); setAuthError(null); window.scrollTo({top:0,behavior:"smooth"}); }}
+                <button onClick={() => { setAuthMode("login"); setPage("auth"); setAuthError(null); setRegisterCaptchaNeeded(false); setCaptchaToken(null); window.scrollTo({top:0,behavior:"smooth"}); }}
                   style={{ background:"none", border:"1px solid rgba(200,155,60,0.3)", color:"#c89b3c", padding:"7px 16px", borderRadius:6, fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"'Outfit'", transition:"all 0.3s", letterSpacing:"0.5px" }}
                   onMouseEnter={(e) => { e.currentTarget.style.background="rgba(200,155,60,0.1)"; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background="none"; }}>
                   Iniciar Sesión
                 </button>
-                <button onClick={() => { setAuthMode("register"); setPage("auth"); setAuthError(null); window.scrollTo({top:0,behavior:"smooth"}); }}
+                <button onClick={() => { setAuthMode("register"); setPage("auth"); setAuthError(null); setRegisterCaptchaNeeded(false); setCaptchaToken(null); window.scrollTo({top:0,behavior:"smooth"}); }}
                   style={{ background:"linear-gradient(135deg,#c89b3c,#a07830)", border:"none", color:"#080810", padding:"8px 16px", borderRadius:6, fontSize:12, fontWeight:800, cursor:"pointer", fontFamily:"'Outfit'", transition:"all 0.3s", letterSpacing:"0.5px" }}
                   onMouseEnter={(e) => { e.currentTarget.style.transform="translateY(-1px)"; }}
                   onMouseLeave={(e) => { e.currentTarget.style.transform="translateY(0)"; }}>
@@ -1712,11 +1695,11 @@ export default function App() {
               </div>
             ) : (
               <>
-                <button onClick={() => { setAuthMode("login"); setPage("auth"); setMobileMenu(false); setAuthError(null); }}
+                <button onClick={() => { setAuthMode("login"); setPage("auth"); setMobileMenu(false); setAuthError(null); setRegisterCaptchaNeeded(false); setCaptchaToken(null); }}
                   style={{ flex:1, background:"none", border:"1px solid rgba(200,155,60,0.3)", color:"#c89b3c", padding:"10px 16px", borderRadius:6, fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"'Outfit'" }}>
                   Iniciar Sesión
                 </button>
-                <button onClick={() => { setAuthMode("register"); setPage("auth"); setMobileMenu(false); setAuthError(null); }}
+                <button onClick={() => { setAuthMode("register"); setPage("auth"); setMobileMenu(false); setAuthError(null); setRegisterCaptchaNeeded(false); setCaptchaToken(null); }}
                   style={{ flex:1, background:"linear-gradient(135deg,#c89b3c,#a07830)", border:"none", color:"#080810", padding:"10px 16px", borderRadius:6, fontSize:13, fontWeight:800, cursor:"pointer", fontFamily:"'Outfit'" }}>
                   Registrarse
                 </button>
@@ -1774,7 +1757,7 @@ export default function App() {
               {/* Auth mode tabs */}
               <div style={{ display:"flex", gap:4, background:"rgba(0,0,0,0.3)", borderRadius:8, padding:3, marginBottom:24 }}>
                 {["login","register"].map(m => (
-                  <button key={m} onClick={() => { setAuthMode(m); setAuthError(null); }}
+                  <button key={m} onClick={() => { setAuthMode(m); setAuthError(null); setRegisterCaptchaNeeded(false); setCaptchaToken(null); }}
                     style={{
                       flex:1, padding:"10px 0", borderRadius:6, border:"none", cursor:"pointer",
                       fontFamily:"'Outfit'", fontSize:13, fontWeight:700, transition:"all 0.3s",
@@ -1842,7 +1825,7 @@ export default function App() {
                   </div>
                 )}
 
-                {authMode === "register" && (
+                {authMode === "register" && registerCaptchaNeeded && (
                   <div style={{ display:"flex", justifyContent:"center" }}>
                     <HCaptcha
                       sitekey="85bed5bc-7136-4836-9534-abb4b64af390"
