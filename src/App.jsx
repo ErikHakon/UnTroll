@@ -396,7 +396,7 @@ function BuildRow({ label, value, itemData }) {
       <div>
         {foundIds.length > 0 && (
           <div style={{ display:"flex", flexWrap:"wrap", gap:4, marginBottom:4 }}>
-            {foundIds.slice(0, 4).map((id, i) => (
+            {foundIds.slice(0, 6).map((id, i) => (
               <img key={i} src={`${ddragonUrl(`img/item/${id}.png`)}`} alt=""
                 style={{ width:24, height:24, borderRadius:4, border:"1px solid rgba(255,255,255,0.1)" }}
                 onError={(e) => { e.target.style.display="none"; }} />
@@ -997,9 +997,9 @@ function CoachTool({ user }) {
 
           {/* 6. Build de Línea */}
           <ResultSection icon="⚔️" title={`Build de Línea vs ${laneOpponent}`} color="#ff4d63">
-            {result.laning_build?.items?.length > 0 && (
+            {(result.laning_build?.items?.length ?? 0) > 0 && (
               <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:14 }}>
-                {result.laning_build.items.map((item, i) => (
+                {result.laning_build?.items?.map((item, i) => (
                   <ItemBadge key={i} name={item} itemData={itemData} index={i} color="#ff4d63" />
                 ))}
               </div>
@@ -1015,17 +1015,21 @@ function CoachTool({ user }) {
 
           {/* 7. Build Completa */}
           <ResultSection icon="🏆" title="Build Completa" color="#12d9f5">
-            <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:14 }}>
-              {result.teamfight_build?.full_build?.map((item, i) => (
-                <ItemBadge key={i} name={item} itemData={itemData} index={i} color="#12d9f5" />
-              ))}
-            </div>
+            {(result.teamfight_build?.full_build?.length ?? 0) > 0 && (
+              <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:14 }}>
+                {result.teamfight_build?.full_build?.map((item, i) => (
+                  <ItemBadge key={i} name={item} itemData={itemData} index={i} color="#12d9f5" />
+                ))}
+              </div>
+            )}
             <div style={{ background:"rgba(18,217,245,0.06)", borderRadius:8, padding:"10px 14px", marginBottom:8 }}>
               <p style={{ margin:0, color:"#c8c0b0", fontSize:14, lineHeight:1.5 }}>{result.teamfight_build?.build_order}</p>
             </div>
-            <div style={{ background:"rgba(18,217,245,0.04)", borderRadius:8, padding:"10px 14px" }}>
-              <p style={{ margin:0, color:"#c8c0b0", fontSize:14 }}><strong style={{ color:"#12d9f5" }}>Situacional:</strong> {result.teamfight_build?.situational}</p>
-            </div>
+            {result.teamfight_build?.situational && (
+              <div style={{ background:"rgba(18,217,245,0.04)", borderRadius:8, padding:"10px 14px" }}>
+                <BuildRow label="Situacional" value={result.teamfight_build.situational} itemData={itemData} />
+              </div>
+            )}
           </ResultSection>
 
           {/* 8. Runas */}
