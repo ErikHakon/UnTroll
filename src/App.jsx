@@ -390,6 +390,8 @@ function BuildRow({ label, value, itemData }) {
   if (!value || !itemData?.exactEN) return null;
   const normalizedText = normalize(value);
   const wordsForSliding = normalizedText.split(/\s+/);
+  const foundIds = [];
+  const seen = new Set();
 
   // 1. Sliding window para aliases multi-palabra (4 a 2 palabras)
   for (let len = 4; len >= 2; len--) {
