@@ -38,6 +38,11 @@ INSTRUCCIONES DE REDACCIÓN:
 - El verbo es 'iniciar' (no 'initiar'). 
 - Revisá que todos los verbos y sustantivos estén correctamente escritos.
 
+INSTRUCCIONES ESPECIALES PARA ORNN:
+- Si el campeón seleccionado es Ornn, incluí en el campo 'game_plan.tips' al menos un tip específico sobre qué items de los aliados priorizar para upgradear a Masterwork, según la composición del equipo aliado.
+- Ejemplo: 'Upgradeá el Trinity Force del ADC antes del Baron para maximizar el burst en teamfights.'
+- Solo mencionés upgrades de Ornn si el campeón es Ornn.
+
 FORMATO DE RESPUESTA:
 Respondé SOLO con un JSON válido. Sin markdown, sin backticks, sin texto antes o después del JSON.
 Usá esta estructura exacta:
