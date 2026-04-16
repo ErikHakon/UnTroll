@@ -700,6 +700,7 @@ function CoachTool({ user, ddragonVer }) {
   const [screenshotLoading, setScreenshotLoading] = useState(false);
   const [screenshotError, setScreenshotError] = useState("");
   const [detectedComposition, setDetectedComposition] = useState(null);
+  const [pendingGenerate, setPendingGenerate] = useState(false);
   const fileInputRef = useRef(null);
 
   const handleScreenshotUpload = async (file) => {
@@ -779,9 +780,15 @@ function CoachTool({ user, ddragonVer }) {
     setEnemyLanes(newEnemyLanes);
 
     setScreenshotModal(false);
-    // Give it a tick to update state before generating
-    setTimeout(() => generate(), 100);
+    setPendingGenerate(true);
   };
+
+  useEffect(() => {
+    if (pendingGenerate && myChamp && laneOpponent) {
+      setPendingGenerate(false);
+      generate();
+    }
+  }, [pendingGenerate, myChamp, laneOpponent]);
 
   useEffect(() => {
     // Data update when version changes or on mount
