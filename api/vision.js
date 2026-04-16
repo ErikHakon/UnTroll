@@ -33,34 +33,52 @@ export default async function handler(req, res) {
 
   // 4. Prompts de Visión
   const SYSTEM_PROMPT = `You are a League of Legends expert analyzing a screenshot.
-Extract EXACTLY the 10 champions visible (5 per team) and their lanes.
-The user's champion is identified by their summoner name appearing in
-yellow/golden color.
+In a League of Legends LOADING SCREEN, champions are ALWAYS displayed in this 
+exact vertical order, top to bottom:
+  Position 1 = TOP
+  Position 2 = JUNGLE
+  Position 3 = MID
+  Position 4 = ADC (bot carry)
+  Position 5 = SUPPORT
+
+Use this positional order as the PRIMARY method to assign lanes.
+Only override it if the champion is universally known to never play that role
+(e.g. Soraka at position 2 → still JUNGLE by position, don't override).
+The user's champion is identified by their summoner name in yellow/golden color.
 Respond ONLY with valid JSON, no markdown, no explanation.`;
 
-  const USER_PROMPT = `Analyze this League of Legends loading screen or champion select screenshot.
-Identify all 10 champions and assign each one a lane role.
-Mark which champion belongs to the user (yellow/gold username).
+  const USER_PROMPT = `Analyze this League of Legends loading screen screenshot.
+Both teams show 5 champions each, listed vertically top to bottom.
+Assign lanes strictly by vertical position:
+  1st champion (topmost) = top
+  2nd champion = jungle
+  3rd champion = mid
+  4th champion = adc
+  5th champion (bottommost) = support
+
+Identify which champion has the summoner name highlighted in yellow/gold — 
+that is the user's champion.
+
 Respond with this exact JSON structure:
 {
-"userChampion": {
-"champion": "ChampionName",
-"lane": "top|jungle|mid|adc|support"
-},
-"allies": [
-{ "champion": "ChampionName", "lane": "top|jungle|mid|adc|support" },
-{ "champion": "ChampionName", "lane": "top|jungle|mid|adc|support" },
-{ "champion": "ChampionName", "lane": "top|jungle|mid|adc|support" },
-{ "champion": "ChampionName", "lane": "top|jungle|mid|adc|support" }
-],
-"enemies": [
-{ "champion": "ChampionName", "lane": "top|jungle|mid|adc|support" },
-{ "champion": "ChampionName", "lane": "top|jungle|mid|adc|support" },
-{ "champion": "ChampionName", "lane": "top|jungle|mid|adc|support" },
-{ "champion": "ChampionName", "lane": "top|jungle|mid|adc|support" },
-{ "champion": "ChampionName", "lane": "top|jungle|mid|adc|support" }
-],
-"confidence": "high|medium|low"
+  "userChampion": {
+    "champion": "ChampionName",
+    "lane": "top|jungle|mid|adc|support"
+  },
+  "allies": [
+    { "champion": "ChampionName", "lane": "top|jungle|mid|adc|support" },
+    { "champion": "ChampionName", "lane": "top|jungle|mid|adc|support" },
+    { "champion": "ChampionName", "lane": "top|jungle|mid|adc|support" },
+    { "champion": "ChampionName", "lane": "top|jungle|mid|adc|support" }
+  ],
+  "enemies": [
+    { "champion": "ChampionName", "lane": "top|jungle|mid|adc|support" },
+    { "champion": "ChampionName", "lane": "top|jungle|mid|adc|support" },
+    { "champion": "ChampionName", "lane": "top|jungle|mid|adc|support" },
+    { "champion": "ChampionName", "lane": "top|jungle|mid|adc|support" },
+    { "champion": "ChampionName", "lane": "top|jungle|mid|adc|support" }
+  ],
+  "confidence": "high|medium|low"
 }`;
 
   const controller = new AbortController();
