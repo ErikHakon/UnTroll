@@ -43,6 +43,9 @@ Identify all 10 champions and their lanes.
 
 Lane assignment rule: within each team row, champions appear left to right as:
 1st = top, 2nd = jungle, 3rd = mid, 4th = adc, 5th = support.
+CRITICAL: assign lanes by counting card positions only.
+Do NOT use your knowledge of what role a champion typically plays.
+A champion in position 2 is ALWAYS jungle, even if they are known as a top laner.
 
 User identification rule: find the summoner name in yellow/gold color — 
 the champion in that card is the userChampion.
