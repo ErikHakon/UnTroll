@@ -134,6 +134,7 @@ Respond with:
     }
 
     const aiText = data.content?.map(i => i.text || "").join("\n") || "";
+    console.log("🔍 [VISION DEBUG] Raw AI response:", aiText);
 
     // 6. Parsing Robust (Patrón optimizado)
     const firstBrace = aiText.indexOf("{");
@@ -158,6 +159,7 @@ Respond with:
     }
 
     const parsedJson = JSON.parse(aiText.slice(firstBrace, lastBrace + 1));
+    console.log("🔍 [VISION DEBUG] Parsed JSON:", JSON.stringify(parsedJson));
     return res.status(200).json(parsedJson);
 
   } catch (err) {
