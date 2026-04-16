@@ -618,6 +618,16 @@ function ScreenshotConfirmModal({ composition, onConfirm, onCancel }) {
     setLocalComp(updated);
   };
 
+  const swapWithUser = (allyIndex) => {
+    const updated = JSON.parse(JSON.stringify(localComp));
+    const previousUser = { ...updated.userChampion };
+    const selectedAlly = { ...updated.allies[allyIndex] };
+    // Intercambiar datos del usuario con el aliado seleccionado
+    updated.userChampion = { champion: selectedAlly.champion, lane: selectedAlly.lane };
+    updated.allies[allyIndex] = { champion: previousUser.champion, lane: previousUser.lane };
+    setLocalComp(updated);
+  };
+
   return (
     <div style={{ position:"fixed", top:0, left:0, right:0, bottom:0, background:"rgba(0,0,0,0.85)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:20, backdropFilter:"blur(4px)" }}>
       <div style={{ background:"#12121f", border:"1px solid rgba(200,155,60,0.3)", borderRadius:16, maxWidth:600, width:"100%", maxHeight:"90vh", overflow:"hidden", display:"flex", flexDirection:"column", boxShadow:"0 24px 64px rgba(0,0,0,0.8)" }}>
@@ -648,6 +658,23 @@ function ScreenshotConfirmModal({ composition, onConfirm, onCancel }) {
                   <ChampPortrait name={a.champion} size={32} />
                   <div style={{ flex:1, fontSize:14, color:"#c8c0b0" }}>{a.champion}</div>
                   <MiniLaneSelector value={a.lane.toUpperCase()} onChange={(l) => updateProp('allies', i, 'lane', l.toLowerCase())} />
+                  <button
+                    onClick={() => swapWithUser(i)}
+                    title="Este es mi campeón"
+                    style={{
+                      background: "transparent",
+                      border: "1px solid rgba(200,155,60,0.3)",
+                      color: "#c89b3c",
+                      borderRadius: 6,
+                      padding: "4px 8px",
+                      fontSize: 11,
+                      cursor: "pointer",
+                      whiteSpace: "nowrap",
+                      flexShrink: 0,
+                    }}
+                  >
+                    ↑ Soy yo
+                  </button>
                 </div>
               ))}
             </div>
