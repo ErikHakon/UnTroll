@@ -63,7 +63,13 @@ If a label uses a word you don't recognize, infer the role from context
 (position in the list, champion identity, etc.) and return the closest of
 the 5 canonical values. Never return the original label text.
 
-For BOTH types: find the text written in YELLOW or GOLDEN color — that is the user's summoner name. The champion on that same card is the userChampion.
+For BOTH types: identify the user's champion using this explicit procedure:
+Step 1: Scan all summoner name texts in the image. In a loading screen, these appear BELOW each champion's name. In champion select, they appear below each ally on the left.
+Step 2: Compare the colors. 4 out of 5 blue team summoner names are in WHITE or LIGHT GRAY. Exactly 1 has a different color: YELLOW, GOLDEN, ORANGE, or AMBER (a warm tint clearly distinct from white).
+Step 3: That 1 differently-colored name is the user's summoner name. The champion whose card contains that colored name is the userChampion.
+IMPORTANT: Do NOT default to the first or last champion in blueTeam. The user
+can be ANY of the 5. Take time to visually compare each summoner name's color
+before deciding.
 
 If TYPE A (loading):
 - blueTeam = 5 champion names from top row, left to right
@@ -134,7 +140,6 @@ Respond with:
     }
 
     const aiText = data.content?.map(i => i.text || "").join("\n") || "";
-    console.log("🔍 [VISION DEBUG] Raw AI response:", aiText);
 
     // 6. Parsing Robust (Patrón optimizado)
     const firstBrace = aiText.indexOf("{");
@@ -159,7 +164,6 @@ Respond with:
     }
 
     const parsedJson = JSON.parse(aiText.slice(firstBrace, lastBrace + 1));
-    console.log("🔍 [VISION DEBUG] Parsed JSON:", JSON.stringify(parsedJson));
     return res.status(200).json(parsedJson);
 
   } catch (err) {
