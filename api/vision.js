@@ -32,21 +32,18 @@ export default async function handler(req, res) {
   }
 
   // 4. Prompts de Visión
-  const SYSTEM_PROMPT = `You are a League of Legends expert analyzing a loading screen screenshot.
-List the champions exactly as they appear visually, left to right.
-The user's champion has their summoner name in YELLOW or GOLDEN color.
+  const SYSTEM_PROMPT = `You are analyzing a League of Legends loading screen image.
+Read the text written on the champion cards. Do not guess or infer — only read what is visible.
 Respond ONLY with valid JSON, no markdown, no explanation.`;
 
-  const USER_PROMPT = `Analyze this League of Legends loading screen screenshot.
+  const USER_PROMPT = `Look at this League of Legends loading screen.
+There are two rows of 5 champion cards. Each card has the champion name written in bold white text.
 
-There are 2 rows of 5 champion cards:
-- Top row = blue team (left to right: positions 1, 2, 3, 4, 5)
-- Bottom row = red team (left to right: positions 1, 2, 3, 4, 5)
+1. Read the 5 champion names on the TOP row, left to right → these are blueTeam[0..4]
+2. Read the 5 champion names on the BOTTOM row, left to right → these are redTeam[0..4]
+3. Find the summoner name written in YELLOW or GOLD color. The champion name on that same card is the userChampion.
 
-List all champions in visual left-to-right order.
-Find the summoner name in yellow/gold color — mark that champion as the user.
-
-Respond with this exact JSON:
+Respond with:
 {
   "blueTeam": ["Champion1", "Champion2", "Champion3", "Champion4", "Champion5"],
   "redTeam": ["Champion1", "Champion2", "Champion3", "Champion4", "Champion5"],
