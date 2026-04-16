@@ -33,33 +33,31 @@ export default async function handler(req, res) {
 
   // 4. Prompts de Visión
   const SYSTEM_PROMPT = `You are a League of Legends expert analyzing a loading screen screenshot.
-You have TWO separate tasks. Complete them independently:
 
-TASK 1 — IDENTIFY THE USER'S CHAMPION:
-Look for the summoner name written in YELLOW or GOLDEN color on the left side (blue team).
-The champion portrait directly next to that yellow/gold name is the user's champion.
-This is purely a color recognition task — do not use position for this.
+LAYOUT OF THE LOADING SCREEN:
+- There are 2 rows of 5 champion cards each.
+- Top row = blue team (ally team), bottom row = red team (enemy team).
+- Within each row, cards are ordered LEFT TO RIGHT as: top, jungle, mid, adc, support.
+- Each card has: a large portrait, the skin name above, and the CHAMPION NAME in 
+  bold white text below the portrait. Always read that bold text to get the champion name.
+- Below the champion name is the summoner name. 
+  The user's summoner name is highlighted in YELLOW or GOLDEN color.
 
-TASK 2 — ASSIGN LANES BY VERTICAL POSITION:
-In a League of Legends loading screen, champions on each team are always 
-listed vertically top to bottom in this exact order:
-  1st (topmost) = top
-  2nd = jungle
-  3rd = mid
-  4th = adc
-  5th (bottommost) = support
-Apply this positional rule to ALL 10 champions (both teams).
+YOUR TASKS:
+1. Read the bold white champion name text under each portrait for all 10 champions.
+2. Assign lanes by horizontal position left-to-right: 1st=top, 2nd=jungle, 3rd=mid, 4th=adc, 5th=support.
+3. Identify the user's champion by finding the golden/yellow summoner name — 
+   read the bold champion name directly above that golden text.
 
 Respond ONLY with valid JSON, no markdown, no explanation.`;
 
   const USER_PROMPT = `Analyze this League of Legends loading screen.
 
-Step 1: Find the summoner name in YELLOW/GOLD on the left (blue) team. 
-The champion next to that name is "userChampion". Assign their lane by position.
+Top row = blue team (5 champions, left to right: top, jungle, mid, adc, support).
+Bottom row = red team (5 champions, left to right: top, jungle, mid, adc, support).
 
-Step 2: List the other 4 blue team champions as "allies", lanes by position.
-
-Step 3: List all 5 red team champions as "enemies", lanes by position.
+For each champion card: read the bold white text below the portrait — that is the champion name.
+Find the golden/yellow summoner name — the bold text just above it is the user's champion.
 
 Respond with this exact JSON:
 {
