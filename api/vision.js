@@ -37,7 +37,7 @@ Respond with valid JSON only. No markdown, no explanation.`;
 
   const USER_PROMPT = `Identify the 10 champions in this League of Legends screenshot and the user's champion.
 
-The user's summoner name appears in golden/yellow text. All other summoner names are white or gray. Find the golden text and identify which champion card it belongs to — that is the user's champion.
+Each champion card has a small summoner icon at the bottom, and directly below that icon is the player's summoner name. Nine of these summoner names are in white or gray. One of them is in golden/yellow color — that one belongs to the user. Find the card with the golden summoner name; that card's champion is the user's champion.
 
 Screen types:
 - "loading": two horizontal rows of 5 champion cards. blueTeam = top row, redTeam = bottom row. blueLanes = null.
