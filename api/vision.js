@@ -37,7 +37,8 @@ Respond with valid JSON only. No markdown, no explanation.`;
 
   const USER_PROMPT = `Analyze this League of Legends loading screen or champion select screenshot.
 
-Identify all 10 champions and assign each one a lane role. Mark which champion belongs to the user (yellow/gold username).
+Identify all 10 champions and assign each one a lane role. Return only the base champion name, never the skin name. For example: "Mordekaiser" not "Mordekaiser Pentakill", "Shaco" not "Shaco Arcanista", "Kled" not "Sir Kled", "Warwick" not "Urfwick", "Teemo" not "Beemo", "Yuumi" not "Yuumiel".
+Mark which champion belongs to the user (yellow/gold username).
 
 Identify the screen type:
 - "loading": two horizontal rows of 5 champion cards
