@@ -35,34 +35,19 @@ export default async function handler(req, res) {
   const SYSTEM_PROMPT = `You analyze League of Legends screenshots. 
 Respond with valid JSON only. No markdown, no explanation.`;
 
-  const USER_PROMPT = `This is a League of Legends screenshot. Extract information about the 10 champions in the match and identify which one belongs to the user.
+  const USER_PROMPT = `Analyze this League of Legends loading screen or champion select screenshot.
 
-FINDING THE USER'S CHAMPION:
-Somewhere in this screenshot there is exactly one piece of text rendered in a golden/yellow color. Every other text in the screenshot is white or gray. That single golden text is the user's summoner name, and it appears near the user's champion card. The champion associated with that golden text is the user's champion.
+Identify all 10 champions. Mark which champion belongs to the user (the one with the yellow/gold summoner name — every other summoner name is white or gray).
 
-EXTRACTING THE TEAMS:
-There are two possible screen layouts:
+Identify the screen type:
+- "loading": two horizontal rows of 5 champion cards
+- "champion_select": vertical list with allies on the left (with lane labels) and enemies on the right
 
-Loading screen — two horizontal rows of 5 champion cards each.
-- blueTeam: the 5 champions in the top row
-- redTeam: the 5 champions in the bottom row
-- blueLanes: null
+For champion_select, read the lane labels next to each ally and map them: SUPERIOR/TOP → "top", JUNGLA/JUNGLE → "jgl", CENTRAL/MID → "mid", INFERIOR/ADC/BOT → "adc", SOPORTE/SUPPORT → "sup". For loading screen, set blueLanes to null.
 
-Champion select — a vertical list with allies on the left and enemies on the right.
-- blueTeam: the 5 allies (left side)
-- redTeam: the 5 enemies (right side)
-- blueLanes: the 5 ally lanes in order, read from the lane labels next to each ally. Translate the label to one of these canonical values:
-  SUPERIOR or TOP → "top"
-  JUNGLA or JUNGLE → "jgl"
-  CENTRAL or MID → "mid"
-  INFERIOR, ADC, or BOT → "adc"
-  SOPORTE or SUPPORT → "sup"
+Champion names must be in Title Case: "Shaco", "Vel'Koz", "Miss Fortune", "Jhin".
 
-CHAMPION NAME FORMAT:
-Return all champion names in Title Case: "Shaco", "Vel'Koz", "Miss Fortune", "Jhin". Never use ALL CAPS. Be careful with names starting with J (e.g. Jhin, Jinx, Jayce) — these start with the letter J, not I.
-
-OUTPUT:
-Respond with exactly this JSON, no markdown, no extra text:
+Respond with this exact JSON, no markdown:
 {
   "userChampion": "ChampionName",
   "screenType": "loading" | "champion_select",
