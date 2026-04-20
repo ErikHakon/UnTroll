@@ -41,7 +41,7 @@ Identify all 10 champions and assign each one a lane role. Return only the base 
 Mark which champion belongs to the user (yellow/gold username).
 
 Identify the screen type:
-- "loading": two horizontal rows of 5 champion cards
+- "loading": two horizontal rows of 5 champion cards. Each card has a summoner name displayed below it. Nine of these summoner names are in white/gray and one is in yellow/gold — that golden name is the user's, and its champion is the userChampion. The user's team (aliados) can be either the top row or the bottom row; place the user's team in blueTeam and the other row in redTeam.
 - "champion_select": vertical list with allies on the left (with lane labels) and enemies on the right
 
 For champion_select, read the lane labels next to each ally and map them: SUPERIOR/TOP → "top", JUNGLA/JUNGLE → "jgl", CENTRAL/MID → "mid", INFERIOR/ADC/BOT → "adc", SOPORTE/SUPPORT → "sup". For loading screen, set blueLanes to null.
