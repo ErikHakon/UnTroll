@@ -785,6 +785,14 @@ function CoachTool({ user, ddragonVer }) {
 
         const data = await res.json();
 
+        console.log("[VISION DEBUG] === Respuesta cruda de Haiku ===");
+        console.log("[VISION DEBUG] userChampion:", data.userChampion);
+        console.log("[VISION DEBUG] screenType:", data.screenType);
+        console.log("[VISION DEBUG] blueTeam:", data.blueTeam);
+        console.log("[VISION DEBUG] redTeam:", data.redTeam);
+        console.log("[VISION DEBUG] blueLanes:", data.blueLanes);
+        console.log("[VISION DEBUG] confidence:", data.confidence);
+
         if (!res.ok) {
           setScreenshotError(data.error || "Error al analizar la imagen");
           setScreenshotLoading(false);
@@ -827,6 +835,14 @@ function CoachTool({ user, ddragonVer }) {
           : POSITIONAL_LANES;
 
         let userIndex = blueTeam.indexOf(userChampion);
+
+        console.log("[VISION DEBUG] === Análisis post-normalización ===");
+        console.log("[VISION DEBUG] userChampion normalizado:", userChampion);
+        console.log("[VISION DEBUG] blueTeam normalizado:", blueTeam);
+        console.log("[VISION DEBUG] redTeam normalizado:", redTeam);
+        console.log("[VISION DEBUG] userIndex en blueTeam:", userIndex);
+        console.log("[VISION DEBUG] userChampion está en redTeam?:", redTeam.indexOf(userChampion) !== -1 ? "SÍ (índice " + redTeam.indexOf(userChampion) + ")" : "No");
+
         if (userIndex === -1) userIndex = 0;
 
         const userLane = blueLanes[userIndex] || null;
