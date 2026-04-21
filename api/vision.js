@@ -35,13 +35,18 @@ export default async function handler(req, res) {
   const SYSTEM_PROMPT = `You analyze League of Legends screenshots. 
 Respond with valid JSON only. No markdown, no explanation.`;
 
-  const USER_PROMPT = `Analyze this League of Legends loading screen or champion select screenshot.
+  const USER_PROMPT = `This is a League of Legends screenshot. Extract information about the 10 champions in the match and identify which one belongs to the user.
+
+FINDING THE USER'S CHAMPION:
+Somewhere in this screenshot there is exactly one piece of text rendered in a golden/yellow color. Every other text in the screenshot is white or gray. That single golden text is the user's summoner name, and it appears near the user's champion card. The champion associated with that golden text is the user's champion.
 
 Identify all 10 champions and assign each one a lane role. Return only the base champion name, never the skin name. For example: "Mordekaiser" not "Mordekaiser Pentakill", "Shaco" not "Shaco Arcanista", "Kled" not "Sir Kled", "Warwick" not "Urfwick", "Teemo" not "Beemo", "Yuumi" not "Yuumiel".
 Mark which champion belongs to the user (yellow/gold username).
 
+Before giving your JSON answer, describe exactly what golden/yellow colored text you see in the image and where it is located. Include this description in a field called "debugGoldenText" in the JSON response.
+
 Identify the screen type:
-- "loading": two horizontal rows of 5 champion cards. Each card has a summoner name displayed below it. Nine of these summoner names are in white/gray and one is in yellow/gold — that golden name is the user's, and its champion is the userChampion. The user's team (aliados) can be either the top row or the bottom row; place the user's team in blueTeam and the other row in redTeam.
+- "loading": two horizontal rows of 5 champion cards. Below each card's summoner icon there is a text label. Exactly one of these 10 labels is rendered in golden/yellow color — that label identifies the user. All other 9 labels are white or gray. The champion of the card with the golden label is the userChampion. The user's team (aliados) can be either the top row or the bottom row; place the user's team in blueTeam and the other row in redTeam.
 - "champion_select": vertical list with allies on the left (with lane labels) and enemies on the right
 
 For champion_select, read the lane labels next to each ally and map them: SUPERIOR/TOP → "top", JUNGLA/JUNGLE → "jgl", CENTRAL/MID → "mid", INFERIOR/ADC/BOT → "adc", SOPORTE/SUPPORT → "sup". For loading screen, set blueLanes to null.
@@ -50,6 +55,7 @@ Champion names must be in Title Case: "Shaco", "Vel'Koz", "Miss Fortune", "Jhin"
 
 Respond with this exact JSON, no markdown:
 {
+  "debugGoldenText": "describe what golden/yellow text you see and where",
   "userChampion": "ChampionName",
   "screenType": "loading" | "champion_select",
   "blueTeam": ["Champion1", "Champion2", "Champion3", "Champion4", "Champion5"],

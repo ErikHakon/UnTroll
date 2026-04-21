@@ -787,6 +787,7 @@ function CoachTool({ user, ddragonVer }) {
 
         console.log("[VISION DEBUG] === Respuesta cruda de Haiku ===");
         console.log("[VISION DEBUG] userChampion:", data.userChampion);
+        console.log("[VISION DEBUG] debugGoldenText:", data.debugGoldenText);
         console.log("[VISION DEBUG] screenType:", data.screenType);
         console.log("[VISION DEBUG] blueTeam:", data.blueTeam);
         console.log("[VISION DEBUG] redTeam:", data.redTeam);
