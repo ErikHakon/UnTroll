@@ -32,35 +32,62 @@ export default async function handler(req, res) {
   }
 
   // 4. Prompts de Visión
-  const SYSTEM_PROMPT = `You analyze League of Legends screenshots. 
-Respond with valid JSON only. No markdown, no explanation.`;
+  const SYSTEM_PROMPT = `You analyze League of Legends screenshots (loading screens and champion select screens). You identify champions, their lanes, and which champion belongs to the user.
 
-  const USER_PROMPT = `This is a League of Legends screenshot. Extract information about the 10 champions in the match and identify which one belongs to the user.
+Respond ONLY with valid JSON. No markdown fences, no explanation, no commentary.`;
 
-FINDING THE USER'S CHAMPION:
-Somewhere in this screenshot there is exactly one piece of text rendered in a golden/yellow color. Every other text in the screenshot is white or gray. That single golden text is the user's summoner name, and it appears near the user's champion card. The champion associated with that golden text is the user's champion.
+  const USER_PROMPT = `Analyze this League of Legends screenshot. It can be either a LOADING SCREEN or a CHAMPION SELECT screen.
 
-Identify all 10 champions and assign each one a lane role. Return only the base champion name, never the skin name. For example: "Mordekaiser" not "Mordekaiser Pentakill", "Shaco" not "Shaco Arcanista", "Kled" not "Sir Kled", "Warwick" not "Urfwick", "Teemo" not "Beemo", "Yuumi" not "Yuumiel".
-Mark which champion belongs to the user (yellow/gold username).
+── FINDING THE USER ──
+Somewhere in the screenshot there is exactly ONE piece of text rendered in a golden/yellow color. Every other text is white or gray. That single golden text is the user's summoner name, and it is placed near the user's champion. The champion associated with that golden text is the user's champion.
 
-Before giving your JSON answer, describe exactly what golden/yellow colored text you see in the image and where it is located. Include this description in a field called "debugGoldenText" in the JSON response.
+Before writing the JSON, describe in a field called "debugGoldenText" what golden/yellow text you see and where it is located. Be precise about its position (e.g. "top row, 3rd card from the left" or "bottom row, rightmost card"). If you are not sure, say so.
 
-Identify the screen type:
-- "loading": two horizontal rows of 5 champion cards. Below each card's summoner icon there is a text label. Exactly one of these 10 labels is rendered in golden/yellow color — that label identifies the user. All other 9 labels are white or gray. The champion of the card with the golden label is the userChampion. The user's team (aliados) can be either the top row or the bottom row; place the user's team in blueTeam and the other row in redTeam.
-- "champion_select": vertical list with allies on the left (with lane labels) and enemies on the right
+── SCREEN TYPE ──
+- "loading": two horizontal rows of 5 champion cards each. Below each card there is a text label. Exactly one label is golden/yellow — that label identifies the user. The user's team may be the top row or the bottom row (it depends on matchmaking — do not assume).
+- "champion_select": vertical list with allies on the left (with lane labels in Spanish: SUPERIOR, JUNGLA, CENTRAL, INFERIOR, SOPORTE) and enemies on the right.
 
-For champion_select, read the lane labels next to each ally and map them: SUPERIOR/TOP → "top", JUNGLA/JUNGLE → "jgl", CENTRAL/MID → "mid", INFERIOR/ADC/BOT → "adc", SOPORTE/SUPPORT → "sup". For loading screen, set blueLanes to null.
+── WHAT TO RETURN ──
+You must return three groups:
+- "userChampion": the champion associated with the golden text, plus its lane.
+- "allies": the 4 OTHER champions on the user's team (NOT the user), each with its lane.
+- "enemies": the 5 champions on the opposing team, each with its lane.
 
-Champion names must be in Title Case: "Shaco", "Vel'Koz", "Miss Fortune", "Jhin".
+"userChampion" + "allies" must total 5 champions. "enemies" must total 5. Never include the user's champion inside "allies".
 
-Respond with this exact JSON, no markdown:
+── LANE VALUES ──
+Use only these canonical lane codes: "top", "jgl", "mid", "adc", "sup".
+
+For champion_select, read the Spanish lane label next to each ally and map it:
+SUPERIOR → "top", JUNGLA → "jgl", CENTRAL → "mid", INFERIOR → "adc", SOPORTE → "sup".
+For enemies in champion_select, infer lane from champion role and position as best you can.
+
+For loading screen, infer each champion's lane from visual cues you can read in the image (Smite summoner spell icon = jungler; bot lane duo = adc + support; the remaining three split into top/mid and you decide from context). Do NOT assume any fixed positional order — in a loading screen champions are not guaranteed to be ordered top-jgl-mid-adc-sup on screen.
+
+── CHAMPION NAMES ──
+Return the BASE champion name, not the skin name. Examples: "Mordekaiser" not "Mordekaiser Pentakill"; "Shaco" not "Shaco Arcanista"; "Kled" not "Sir Kled"; "Warwick" not "Urfwick"; "Teemo" not "Beemo"; "Yuumi" not "Yuumiel".
+
+Write champion names in Title Case with correct punctuation: "Shaco", "Vel'Koz", "Miss Fortune", "Jhin", "Kai'Sa", "Cho'Gath", "Kog'Maw", "Rek'Sai", "Kha'Zix".
+
+── JSON FORMAT ──
+Respond with EXACTLY this JSON structure, no markdown:
 {
-  "debugGoldenText": "describe what golden/yellow text you see and where",
-  "userChampion": "ChampionName",
+  "debugGoldenText": "describe the golden/yellow text and its location",
   "screenType": "loading" | "champion_select",
-  "blueTeam": ["Champion1", "Champion2", "Champion3", "Champion4", "Champion5"],
-  "redTeam": ["Champion1", "Champion2", "Champion3", "Champion4", "Champion5"],
-  "blueLanes": ["top", "jgl", "mid", "adc", "sup"] or null,
+  "userChampion": { "champion": "ChampionName", "lane": "top" | "jgl" | "mid" | "adc" | "sup" },
+  "allies": [
+    { "champion": "ChampionName", "lane": "top" | "jgl" | "mid" | "adc" | "sup" },
+    { "champion": "ChampionName", "lane": "top" | "jgl" | "mid" | "adc" | "sup" },
+    { "champion": "ChampionName", "lane": "top" | "jgl" | "mid" | "adc" | "sup" },
+    { "champion": "ChampionName", "lane": "top" | "jgl" | "mid" | "adc" | "sup" }
+  ],
+  "enemies": [
+    { "champion": "ChampionName", "lane": "top" | "jgl" | "mid" | "adc" | "sup" },
+    { "champion": "ChampionName", "lane": "top" | "jgl" | "mid" | "adc" | "sup" },
+    { "champion": "ChampionName", "lane": "top" | "jgl" | "mid" | "adc" | "sup" },
+    { "champion": "ChampionName", "lane": "top" | "jgl" | "mid" | "adc" | "sup" },
+    { "champion": "ChampionName", "lane": "top" | "jgl" | "mid" | "adc" | "sup" }
+  ],
   "confidence": "high" | "medium" | "low"
 }`;
 

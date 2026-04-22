@@ -761,7 +761,7 @@ function CoachTool({ user, ddragonVer }) {
 
   const handleScreenshotUpload = async (file) => {
     if (!file) return;
-    
+
     // Validar tamaño en cliente (5MB)
     if (file.size > 5 * 1024 * 1024) {
       setScreenshotError("La imagen supera el límite de 5MB");
@@ -785,13 +785,12 @@ function CoachTool({ user, ddragonVer }) {
 
         const data = await res.json();
 
-        console.log("[VISION DEBUG] === Respuesta cruda de Haiku ===");
-        console.log("[VISION DEBUG] userChampion:", data.userChampion);
+        console.log("[VISION DEBUG] === Respuesta de Haiku ===");
         console.log("[VISION DEBUG] debugGoldenText:", data.debugGoldenText);
         console.log("[VISION DEBUG] screenType:", data.screenType);
-        console.log("[VISION DEBUG] blueTeam:", data.blueTeam);
-        console.log("[VISION DEBUG] redTeam:", data.redTeam);
-        console.log("[VISION DEBUG] blueLanes:", data.blueLanes);
+        console.log("[VISION DEBUG] userChampion:", data.userChampion);
+        console.log("[VISION DEBUG] allies:", data.allies);
+        console.log("[VISION DEBUG] enemies:", data.enemies);
         console.log("[VISION DEBUG] confidence:", data.confidence);
 
         if (!res.ok) {
@@ -799,6 +798,12 @@ function CoachTool({ user, ddragonVer }) {
           setScreenshotLoading(false);
           return;
         }
+
+        // Normalizar nombres a Title Case (fix íconos cuando la IA devuelve MAYÚSCULAS)
+        const toTitleCase = (s) => {
+          if (!s) return s;
+          return s.toLowerCase().replace(/(^|[\s'\-.])(\w)/g, (m, sep, ch) => sep + ch.toUpperCase());
+        };
 
         // Normalizar carriles a valores canónicos de la app
         const normalizeLane = (lane) => {
@@ -814,56 +819,20 @@ function CoachTool({ user, ddragonVer }) {
           return map[l] || null;
         };
 
-        // Normalizar nombres a Title Case (fix para íconos rotos cuando la IA devuelve MAYÚSCULAS)
-        const toTitleCase = (s) => {
-          if (!s) return s;
-          return s.toLowerCase().replace(/(^|[\s'\-.])(\w)/g, (m, sep, ch) => sep + ch.toUpperCase());
-        };
-
-        const blueTeam = (data.blueTeam || []).map(toTitleCase);
-        const redTeam = (data.redTeam || []).map(toTitleCase);
-        const userChampion = toTitleCase(data.userChampion);
-
-        const POSITIONAL_LANES = ["top", "jgl", "mid", "adc", "sup"];
-        const isChampSelect = data.screenType === "champion_select";
-
-        const blueLanes = isChampSelect && Array.isArray(data.blueLanes)
-          ? data.blueLanes.map(normalizeLane)
-          : POSITIONAL_LANES;
-
-        const redLanes = isChampSelect
-          ? [null, null, null, null, null]
-          : POSITIONAL_LANES;
-
-        let userIndex = blueTeam.indexOf(userChampion);
-
-        console.log("[VISION DEBUG] === Análisis post-normalización ===");
-        console.log("[VISION DEBUG] userChampion normalizado:", userChampion);
-        console.log("[VISION DEBUG] blueTeam normalizado:", blueTeam);
-        console.log("[VISION DEBUG] redTeam normalizado:", redTeam);
-        console.log("[VISION DEBUG] userIndex en blueTeam:", userIndex);
-        console.log("[VISION DEBUG] userChampion está en redTeam?:", redTeam.indexOf(userChampion) !== -1 ? "SÍ (índice " + redTeam.indexOf(userChampion) + ")" : "No");
-
-        if (userIndex === -1) userIndex = 0;
-
-        const userLane = blueLanes[userIndex] || null;
-
-        const allies = blueTeam
-          .map((champion, i) => ({ champion, lane: blueLanes[i] }))
-          .filter((_, i) => i !== userIndex);
-
-        const enemies = redTeam.map((champion, i) => ({
-          champion,
-          lane: redLanes[i],
-        }));
+        const normalizeSlot = (slot) => ({
+          champion: toTitleCase(slot?.champion),
+          lane: normalizeLane(slot?.lane),
+        });
 
         const transformed = {
-          userChampion: { champion: userChampion, lane: userLane },
-          allies,
-          enemies,
+          userChampion: normalizeSlot(data.userChampion),
+          allies: (data.allies || []).map(normalizeSlot),
+          enemies: (data.enemies || []).map(normalizeSlot),
           confidence: data.confidence,
           screenType: data.screenType,
         };
+
+        console.log("[VISION DEBUG] === Composición transformada ===", transformed);
 
         setDetectedComposition(transformed);
         setScreenshotModal(true);
