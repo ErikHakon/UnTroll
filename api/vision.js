@@ -32,55 +32,58 @@ export default async function handler(req, res) {
   }
 
   // 4. Prompts de Visión
-  const SYSTEM_PROMPT = `You analyze League of Legends screenshots. You identify champions by their portraits. You return a strict JSON structure based on the screen type.
+  const SYSTEM_PROMPT = `You read text from League of Legends screenshots. You do NOT identify champions by their visual appearance. You only transcribe text that is written on the screen.
 
 Respond ONLY with valid JSON. No markdown fences, no explanation, no commentary.`;
 
   const USER_PROMPT = `Analyze this League of Legends screenshot. It is either a LOADING SCREEN or a CHAMPION SELECT screen.
 
-── STEP 1: IDENTIFY SCREEN TYPE ──
-- "loading": two horizontal rows of 5 champion cards each. Each card shows a full-body champion splash art, and below it some text labels (summoner name and/or champion name).
-- "champion_select": vertical list of 5 champions on the LEFT side (the user's allies, each with a Spanish lane label: SUPERIOR, JUNGLA, CENTRAL, INFERIOR, SOPORTE) and 5 champions on the RIGHT side (the enemy team).
+── SCREEN TYPE ──
+- "loading": two horizontal rows of 5 champion cards each.
+- "champion_select": vertical list of 5 champions on the LEFT (user's allies, each with a Spanish lane label: SUPERIOR, JUNGLA, CENTRAL, INFERIOR, SOPORTE) and 5 on the RIGHT (enemies).
 
-── STEP 2: IDENTIFY CHAMPIONS ──
-Identify all 10 champions by their portraits. Return the BASE champion name, NEVER the skin name. Examples: "Mordekaiser" (not "Mordekaiser Pentakill"); "Shaco" (not "Shaco Arcanista"); "Kled" (not "Sir Kled"); "Warwick" (not "Urfwick"); "Teemo" (not "Beemo"); "Yuumi" (not "Yuumiel"); "Lee Sin" (not "Lee Sin Muay Thai"); "Sett" (not "Sett Dragón de Obsidiana").
+── FOR LOADING SCREEN: READ THE CARD TEXT ──
 
-Write champion names in Title Case with correct punctuation: "Shaco", "Vel'Koz", "Miss Fortune", "Jhin", "Kai'Sa", "Cho'Gath", "Kog'Maw", "Rek'Sai", "Kha'Zix", "Lee Sin", "Master Yi", "Dr. Mundo", "Tahm Kench", "Twisted Fate".
+Each card has a full-body splash art. Inside the splash art, directly ABOVE the small circular summoner icon, there is a piece of text. This is either the base champion name OR the skin name (e.g. "El Shascanueces", "Nocturne Eternum", "Shen Amarillo", "PROYECTO: Renekton").
 
-── STEP 3: OUTPUT FORMAT ──
+Read ONLY that text. Transcribe it exactly as written. Do NOT interpret, translate, or replace it with anything else. Do NOT look at the splash art visuals.
 
-If screenType is "loading", you return TWO ROWS of 5 champions each, read strictly left-to-right as they appear on screen. Do NOT try to identify which row is the user's team. Do NOT try to identify the user. Just read the champions in order.
+IGNORE all text that appears BELOW the summoner icon. That text is the player's summoner name or a decorative title (e.g. "Cazador de Caits", "Incendiario", "Ángel Guardián"). It is NOT the champion or skin name.
 
-If screenType is "champion_select", you return the user's champion, the 4 other allies (with their Spanish lane labels mapped to codes), and the 5 enemies. Detect the user by the golden/yellow summoner name on the ally list.
+Read all 10 cards left to right, top row first then bottom row. Return the text you read for each card exactly as it appears.
 
-── LANE CODES ──
-Only use: "top", "jgl", "mid", "adc", "sup".
-Map Spanish labels: SUPERIOR → "top", JUNGLA → "jgl", CENTRAL → "mid", INFERIOR → "adc", SOPORTE → "sup".
+── FOR CHAMPION SELECT: READ CHAMPION NAMES AND LANES ──
+
+Read the champion name written next to each portrait. Identify the user by the golden/yellow summoner name on the ally list.
+Map Spanish lane labels: SUPERIOR → "top", JUNGLA → "jgl", CENTRAL → "mid", INFERIOR → "adc", SOPORTE → "sup".
+
+── CHAMPION NAME FORMAT (champion_select only) ──
+Return names in Title Case: "Shaco", "Miss Fortune", "Jarvan IV", "Kai'Sa", "Cho'Gath", "Vel'Koz", "Lee Sin", "Tahm Kench", "Twisted Fate", "Dr. Mundo", "Aurelion Sol", "LeBlanc", "Nunu & Willump", "Bel'Veth", "K'Sante", "Kog'Maw", "Rek'Sai", "Kha'Zix", "Xin Zhao", "Master Yi", "Renata Glasc", "Wukong".
 
 ── JSON FORMAT FOR "loading" ──
 {
   "screenType": "loading",
-  "topRow": ["Champion1", "Champion2", "Champion3", "Champion4", "Champion5"],
-  "bottomRow": ["Champion1", "Champion2", "Champion3", "Champion4", "Champion5"],
+  "topRow": ["text from card 1", "text from card 2", "text from card 3", "text from card 4", "text from card 5"],
+  "bottomRow": ["text from card 1", "text from card 2", "text from card 3", "text from card 4", "text from card 5"],
   "confidence": "high" | "medium" | "low"
 }
 
 ── JSON FORMAT FOR "champion_select" ──
 {
   "screenType": "champion_select",
-  "userChampion": { "champion": "ChampionName", "lane": "top" | "jgl" | "mid" | "adc" | "sup" },
+  "userChampion": { "champion": "ChampionName", "lane": "top|jgl|mid|adc|sup" },
   "allies": [
-    { "champion": "ChampionName", "lane": "top" | "jgl" | "mid" | "adc" | "sup" },
-    { "champion": "ChampionName", "lane": "top" | "jgl" | "mid" | "adc" | "sup" },
-    { "champion": "ChampionName", "lane": "top" | "jgl" | "mid" | "adc" | "sup" },
-    { "champion": "ChampionName", "lane": "top" | "jgl" | "mid" | "adc" | "sup" }
+    { "champion": "ChampionName", "lane": "top|jgl|mid|adc|sup" },
+    { "champion": "ChampionName", "lane": "top|jgl|mid|adc|sup" },
+    { "champion": "ChampionName", "lane": "top|jgl|mid|adc|sup" },
+    { "champion": "ChampionName", "lane": "top|jgl|mid|adc|sup" }
   ],
   "enemies": [
-    { "champion": "ChampionName", "lane": "top" | "jgl" | "mid" | "adc" | "sup" },
-    { "champion": "ChampionName", "lane": "top" | "jgl" | "mid" | "adc" | "sup" },
-    { "champion": "ChampionName", "lane": "top" | "jgl" | "mid" | "adc" | "sup" },
-    { "champion": "ChampionName", "lane": "top" | "jgl" | "mid" | "adc" | "sup" },
-    { "champion": "ChampionName", "lane": "top" | "jgl" | "mid" | "adc" | "sup" }
+    { "champion": "ChampionName", "lane": "top|jgl|mid|adc|sup" },
+    { "champion": "ChampionName", "lane": "top|jgl|mid|adc|sup" },
+    { "champion": "ChampionName", "lane": "top|jgl|mid|adc|sup" },
+    { "champion": "ChampionName", "lane": "top|jgl|mid|adc|sup" },
+    { "champion": "ChampionName", "lane": "top|jgl|mid|adc|sup" }
   ],
   "confidence": "high" | "medium" | "low"
 }

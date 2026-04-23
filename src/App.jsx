@@ -52,9 +52,13 @@ const CHAMP_FILE_NAMES = {
   "Mel":"Mel",
 };
 
+const CHAMP_FILE_NAMES_LOWER = Object.entries(CHAMP_FILE_NAMES).reduce(
+  (acc, [key, value]) => { acc[key.toLowerCase()] = value; return acc; }, {}
+);
+
 function getChampIcon(name, ver = GLOBAL_DDRAGON_VER) {
   if (!name) return "";
-  const override = CHAMP_FILE_NAMES[name];
+  const override = CHAMP_FILE_NAMES_LOWER[name.toLowerCase()];
   if (override) return ddragonUrl(`img/champion/${override}.png`, ver);
   const f = name.replace(/['\s.]/g,"").replace("&Willump","");
   return ddragonUrl(`img/champion/${f}.png`, ver);
@@ -684,40 +688,6 @@ function ScreenshotConfirmModal({ composition, onConfirm, onCancel }) {
 
   // ─── Render paso pick-user ───
   if (step === "pick-user" && pickState) {
-    const renderRow = (rowKey, rowLabel) => (
-      <section>
-        <div style={{ fontSize:11, fontWeight:800, color:"#c89b3c", textTransform:"uppercase", letterSpacing:1, marginBottom:10 }}>{rowLabel}</div>
-        <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-          {pickState[rowKey].map((c, i) => (
-            <div key={i} style={{ display:"flex", alignItems:"center", gap:12, background:"rgba(200,155,60,0.04)", padding:"8px 12px", borderRadius:10, border:"1px solid rgba(200,155,60,0.08)" }}>
-              <ChampPortrait name={c.champion} size={32} />
-              <div style={{ flex:1, fontSize:14, color:"#c8c0b0" }}>{c.champion}</div>
-              <MiniLaneSelector value={c.lane ? c.lane.toUpperCase() : ""} onChange={(l) => updatePickLane(rowKey, i, l.toLowerCase())} />
-              <button
-                onClick={() => pickAsUser(rowKey, i)}
-                title="Este es mi campeón"
-                style={{
-                  background: "rgba(200,155,60,0.15)",
-                  border: "1px solid rgba(200,155,60,0.4)",
-                  color: "#c89b3c",
-                  borderRadius: 20,
-                  padding: "4px 12px",
-                  fontSize: 10,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  whiteSpace: "nowrap",
-                  flexShrink: 0,
-                  letterSpacing: "0.5px",
-                }}
-              >
-                soy yo
-              </button>
-            </div>
-          ))}
-        </div>
-      </section>
-    );
-
     return (
       <div style={{ position:"fixed", top:0, left:0, right:0, bottom:0, background:"rgba(0,0,0,0.85)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:20, backdropFilter:"blur(4px)" }}>
         <div style={{ background:"#12121f", border:"1px solid rgba(200,155,60,0.3)", borderRadius:16, maxWidth:600, width:"100%", maxHeight:"90vh", overflow:"hidden", display:"flex", flexDirection:"column", boxShadow:"0 24px 64px rgba(0,0,0,0.8)" }}>
@@ -726,9 +696,34 @@ function ScreenshotConfirmModal({ composition, onConfirm, onCancel }) {
             <div style={{ marginTop:8, color:"#9a9590", fontSize:13 }}>Tocá "soy yo" sobre tu campeón. Si alguna línea está mal, corregila antes.</div>
           </div>
 
-          <div style={{ overflowY:"auto", padding:"20px 28px", display:"flex", flexDirection:"column", gap:20 }}>
-            {renderRow("topRow", "Equipo de Arriba")}
-            {renderRow("bottomRow", "Equipo de Abajo")}
+          <div style={{ overflowY:"auto", padding:"20px 28px", display:"flex", flexDirection:"column", gap:8 }}>
+            {[...pickState.topRow.map((c, i) => ({ c, i, row: "topRow" })),
+              ...pickState.bottomRow.map((c, i) => ({ c, i, row: "bottomRow" }))].map(({ c, i, row }) => (
+              <div key={`${row}-${i}`} style={{ display:"flex", alignItems:"center", gap:12, background:"rgba(200,155,60,0.04)", padding:"8px 12px", borderRadius:10, border:"1px solid rgba(200,155,60,0.08)" }}>
+                <ChampPortrait name={c.champion} size={32} />
+                <div style={{ flex:1, fontSize:14, color:"#c8c0b0" }}>{c.champion}</div>
+                <MiniLaneSelector value={c.lane ? c.lane.toUpperCase() : ""} onChange={(l) => updatePickLane(row, i, l.toLowerCase())} />
+                <button
+                  onClick={() => pickAsUser(row, i)}
+                  title="Este es mi campeón"
+                  style={{
+                    background: "rgba(200,155,60,0.15)",
+                    border: "1px solid rgba(200,155,60,0.4)",
+                    color: "#c89b3c",
+                    borderRadius: 20,
+                    padding: "4px 12px",
+                    fontSize: 10,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    flexShrink: 0,
+                    letterSpacing: "0.5px",
+                  }}
+                >
+                  soy yo
+                </button>
+              </div>
+            ))}
           </div>
 
           <div style={{ padding:"20px 28px", borderTop:"1px solid rgba(255,255,255,0.06)", display:"flex", gap:12 }}>
@@ -866,6 +861,7 @@ function CoachTool({ user, ddragonVer }) {
   const [loadingMsg, setLoadingMsg] = useState(0);
   const [itemData, setItemData] = useState({});
   const [runeData, setRuneData] = useState({});
+  const [skinIndex, setSkinIndex] = useState({});
   const [fromCache, setFromCache] = useState(false);
   const [buildType, setBuildType] = useState("auto");
 
@@ -911,10 +907,15 @@ function CoachTool({ user, ddragonVer }) {
           return;
         }
 
-        // Normalizar nombres a Title Case (fix íconos cuando la IA devuelve MAYÚSCULAS)
+        // Normalizar nombres a Title Case con soporte para números romanos
         const toTitleCase = (s) => {
           if (!s) return s;
-          return s.toLowerCase().replace(/(^|[\s'\-.])(\w)/g, (m, sep, ch) => sep + ch.toUpperCase());
+          const romanNumerals = new Set(["I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII"]);
+          const titled = s.toLowerCase().replace(/(^|[\s'\-.])(\w)/g, (m, sep, ch) => sep + ch.toUpperCase());
+          return titled.split(" ").map(word => {
+            const upper = word.toUpperCase();
+            return romanNumerals.has(upper) ? upper : word;
+          }).join(" ");
         };
 
         // Normalizar carriles a valores canónicos de la app
@@ -931,8 +932,27 @@ function CoachTool({ user, ddragonVer }) {
           return map[l] || null;
         };
 
+        // Resolver texto de card → nombre base del champion usando el índice de skins de DDragon.
+        // Haiku transcribe el texto de la card tal cual (puede ser nombre de skin o nombre base).
+        // skinIndex (preconstruido del champion.json de DDragon) mapea 
+        // skinName.toLowerCase() → championBaseName en español.
+        // Si no matchea en el índice, asumimos que ya es el nombre base y aplicamos toTitleCase.
+        const resolveChampion = (cardText) => {
+          if (!cardText) return cardText;
+          const key = cardText.toLowerCase().trim();
+          // Lookup exacto
+          if (skinIndex[key]) return skinIndex[key];
+          // Lookup parcial: buscar si alguna key del índice está contenida en el texto de la card
+          // (cubre casos como "PROYECTO: Renekton" donde "renekton" está en el texto)
+          for (const [skinKey, champName] of Object.entries(skinIndex)) {
+            if (skinKey !== "default" && key.includes(skinKey)) return champName;
+          }
+          // Fallback: asumir que el texto ya es el nombre base
+          return toTitleCase(cardText);
+        };
+
         const normalizeSlot = (slot) => ({
-          champion: toTitleCase(slot?.champion),
+          champion: resolveChampion(slot?.champion),
           lane: normalizeLane(slot?.lane),
         });
 
@@ -942,14 +962,12 @@ function CoachTool({ user, ddragonVer }) {
         let transformed;
 
         if (data.screenType === "loading") {
-          // Contrato loading: dos filas, sin user pre-detectado.
-          // El cliente asigna lanes posicionalmente y el usuario elige su campeón en el modal.
-          const topRow = (data.topRow || []).map((champ, i) => ({
-            champion: toTitleCase(champ),
+          const topRow = (data.topRow || []).map((cardText, i) => ({
+            champion: resolveChampion(cardText),
             lane: POSITIONAL_LANES[i] || null,
           }));
-          const bottomRow = (data.bottomRow || []).map((champ, i) => ({
-            champion: toTitleCase(champ),
+          const bottomRow = (data.bottomRow || []).map((cardText, i) => ({
+            champion: resolveChampion(cardText),
             lane: POSITIONAL_LANES[i] || null,
           }));
           transformed = {
@@ -960,7 +978,6 @@ function CoachTool({ user, ddragonVer }) {
             screenType: data.screenType,
           };
         } else {
-          // Contrato champion_select: user + aliados + enemigos ya detectados
           transformed = {
             mode: "confirm-composition",
             userChampion: normalizeSlot(data.userChampion),
@@ -1077,6 +1094,26 @@ function CoachTool({ user, ddragonVer }) {
         addRunes(esRunes);
         setRuneData({ exact, normalized });
       }).catch(() => {});
+
+      // Índice de skins: skinName.toLowerCase() → championBaseName
+      // Usa es_ES para que matchee los nombres que aparecen en las cards
+      fetch(ddragonUrl("data/es_ES/champion.json", actualVer))
+        .then(r => r.json())
+        .then(champData => {
+          const index = {};
+          for (const [champKey, champ] of Object.entries(champData.data)) {
+            const baseName = champ.name; // nombre base del champion en español
+            for (const skin of champ.skins) {
+              if (skin.num === 0) continue; // "default" → no es nombre de skin
+              // Indexar el nombre de skin en lowercase para lookup case-insensitive
+              index[skin.name.toLowerCase()] = baseName;
+              // También indexar el nombre base del champion (para cards sin skin)
+            }
+            // El nombre base también debe resolverse a sí mismo
+            index[baseName.toLowerCase()] = baseName;
+          }
+          setSkinIndex(index);
+        }).catch(() => {});
   }, [ddragonVer]);
   
   const handleLaneChange = (l) => {
