@@ -77,15 +77,17 @@ ally has a Spanish lane label (SUPERIOR, JUNGLA, CENTRAL,
 INFERIOR, SOPORTE) written next to their portrait. Read every 
 lane label carefully — they are always explicit.
 
-Identify the user by the golden/yellow summoner name on the 
-ally list. The user IS one of the 5 allies on the left.
+Detect the user by the golden/yellow summoner name on the ally 
+list. That summoner name appears directly below the champion 
+name — the champion above that golden text is the user's 
+champion. All other summoner names are white or gray.
 
 Return:
-- "userChampion": the user's champion with the lane read from 
-  their label on the left side.
+- "userChampion": the champion whose summoner name is golden/
+  yellow, with the lane from their label.
 - "allies": the OTHER 4 champions on the left side (NOT the 
-  user), each with their lane read from their label. Must be 
-  exactly 4 champions, all different from userChampion.
+  user), each with their lane from their label. Exactly 4, all 
+  different from userChampion.
 - "enemies": the 5 champions on the RIGHT side with inferred 
   lanes.
 
